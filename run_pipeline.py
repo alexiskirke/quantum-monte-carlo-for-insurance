@@ -55,15 +55,18 @@ def main() -> None:
 
     # --- Experiment 1 ---
     log.info("Step 2/4: Experiment 1 – Noiseless Convergence Scaling ...")
-    exp1 = run_experiment1(dist_params, n_qubits=args.n_qubits, seed=args.seed)
+    exp1 = run_experiment1(dist_params, losses, n_qubits=args.n_qubits,
+                           seed=args.seed)
 
     # --- Experiment 2 ---
     log.info("Step 3/4: Experiment 2 – NISQ Noise Model ...")
-    exp2 = run_experiment2(dist_params, n_qubits=args.n_qubits, seed=args.seed)
+    exp2 = run_experiment2(dist_params, losses, n_qubits=args.n_qubits,
+                           seed=args.seed)
 
     # --- Experiment 3 ---
     log.info("Step 4/4: Experiment 3 – Tail-Specific Excess Loss ...")
-    exp3 = run_experiment3(dist_params, losses, n_qubits=args.n_qubits, seed=args.seed)
+    exp3 = run_experiment3(dist_params, losses, n_qubits=args.n_qubits,
+                           seed=args.seed)
 
     # --- Save ---
     save_all(exp1, exp2, exp3)

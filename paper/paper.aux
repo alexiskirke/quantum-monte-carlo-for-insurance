@@ -1,0 +1,62 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\providecommand\HyField@AuxAddToFields[1]{}
+\providecommand\HyField@AuxAddToCoFields[2]{}
+\citation{grossi2005catastrophe}
+\@writefile{toc}{\contentsline {section}{\numberline {1}Method}{1}{section.1}\protected@file@percent }
+\newlabel{sec:method}{{1}{1}{Method}{section.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.1}Loss Distribution and Data Pipeline}{1}{subsection.1.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.2}Quantum State Preparation and Oracle Construction}{2}{subsection.1.2}\protected@file@percent }
+\newlabel{sec:oracle}{{1.2}{2}{Quantum State Preparation and Oracle Construction}{subsection.1.2}{}}
+\@writefile{toc}{\contentsline {paragraph}{Stage 1: Custom state preparation.}{2}{section*.1}\protected@file@percent }
+\newlabel{eq:stateprep}{{1}{2}{Stage 1: Custom state preparation}{equation.1}{}}
+\@writefile{toc}{\contentsline {paragraph}{Stage 2: Payoff rotation on the ancilla.}{2}{section*.2}\protected@file@percent }
+\newlabel{eq:readout}{{3}{2}{Stage 2: Payoff rotation on the ancilla}{equation.3}{}}
+\newlabel{eq:rescale}{{4}{2}{Stage 2: Payoff rotation on the ancilla}{equation.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.3}Grover-Boosted Amplitude Estimation}{3}{subsection.1.3}\protected@file@percent }
+\newlabel{eq:deamp}{{5}{3}{Grover-Boosted Amplitude Estimation}{equation.5}{}}
+\newlabel{eq:kmax}{{6}{3}{Grover-Boosted Amplitude Estimation}{equation.6}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.4}Noise Model}{3}{subsection.1.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.5}Experimental Protocol}{3}{subsection.1.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Experiment 1: Noiseless Convergence Scaling.}{3}{section*.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Experiment 2: NISQ Noise Degradation.}{3}{section*.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Experiment 3: Tail-Specific Excess Loss.}{4}{section*.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2}Results}{4}{section.2}\protected@file@percent }
+\newlabel{sec:results}{{2}{4}{Results}{section.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Experiment 1: Noiseless Convergence Scaling}{4}{subsection.2.1}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Experiment 1: RMSE (\$) vs.\ total oracle queries at the 95th-percentile threshold ($P(|1\rangle ) = 0.0066$, $k_{\max } = 9$, $n_{\text  {reps}} = 30$, 1{,}000 shots per quantum run).}}{4}{table.caption.6}\protected@file@percent }
+\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
+\newlabel{tab:exp1}{{1}{4}{Experiment 1: RMSE (\$) vs.\ total oracle queries at the 95th-percentile threshold ($P(|1\rangle ) = 0.0066$, $k_{\max } = 9$, $n_{\text {reps}} = 30$, 1{,}000 shots per quantum run)}{table.caption.6}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Experiment 2: NISQ Noise Degradation}{4}{subsection.2.2}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Experiment 2: QAE accuracy under NISQ noise ($k = 3$, 8{,}192 shots, $n_{\text  {reps}} = 20$). Exact $E[\text  {excess}] = \$2{,}330$.}}{4}{table.caption.8}\protected@file@percent }
+\newlabel{tab:exp2}{{2}{4}{Experiment 2: QAE accuracy under NISQ noise ($k = 3$, 8{,}192 shots, $n_{\text {reps}} = 20$). Exact $E[\text {excess}] = \$2{,}330$}{table.caption.8}{}}
+\citation{temme2017error,li2017efficient}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Log-log convergence: RMSE vs.\ total oracle queries. Classical MC (red) follows $O(1/\sqrt  {N})$. Grover-amplified QAE (blue) converges faster, with each point annotated by its $k$ value. Reference slopes for $O(1/\sqrt  {N})$ and $O(1/N)$ are shown as dashed lines.}}{5}{figure.caption.7}\protected@file@percent }
+\newlabel{fig:exp1}{{1}{5}{Log-log convergence: RMSE vs.\ total oracle queries. Classical MC (red) follows $O(1/\sqrt {N})$. Grover-amplified QAE (blue) converges faster, with each point annotated by its $k$ value. Reference slopes for $O(1/\sqrt {N})$ and $O(1/N)$ are shown as dashed lines}{figure.caption.7}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3}Experiment 3: Tail-Specific Excess Loss}{5}{subsection.2.3}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces QAE RMSE under increasing NISQ noise at $k = 3$ Grover iterations. The noiseless baseline (RMSE = \$32) degrades to $\sim $\$2{,}100 under even low noise --- a $66\times $ increase, driven by the $\sim $700-gate circuit depth.}}{6}{figure.caption.9}\protected@file@percent }
+\newlabel{fig:exp2}{{2}{6}{QAE RMSE under increasing NISQ noise at $k = 3$ Grover iterations. The noiseless baseline (RMSE = \$32) degrades to $\sim $\$2{,}100 under even low noise --- a $66\times $ increase, driven by the $\sim $700-gate circuit depth}{figure.caption.9}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Experiment 3: excess-loss estimation at tail percentiles ($n_{\text  {reps}} = 30$). Classical MC uses 500 samples. Quantum Grover uses $k_{\text  {use}} = \min (k_{\max }, 6)$ iterations with shots budget-matched to 8{,}192 total oracle queries.}}{6}{table.caption.10}\protected@file@percent }
+\newlabel{tab:exp3}{{3}{6}{Experiment 3: excess-loss estimation at tail percentiles ($n_{\text {reps}} = 30$). Classical MC uses 500 samples. Quantum Grover uses $k_{\text {use}} = \min (k_{\max }, 6)$ iterations with shots budget-matched to 8{,}192 total oracle queries}{table.caption.10}{}}
+\citation{zoufal2019quantum}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Experiment 3: excess-loss RMSE (left) and normalised query inefficiency (right) at three tail percentiles. The quantum advantage grows with tail depth because deeper tails produce smaller $P(|1\rangle )$, enabling more Grover iterations.}}{7}{figure.caption.11}\protected@file@percent }
+\newlabel{fig:exp3}{{3}{7}{Experiment 3: excess-loss RMSE (left) and normalised query inefficiency (right) at three tail percentiles. The quantum advantage grows with tail depth because deeper tails produce smaller $P(|1\rangle )$, enabling more Grover iterations}{figure.caption.11}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.4}Discussion}{7}{subsection.2.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Genuine quadratic speedup.}{7}{section*.12}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{The NISQ bottleneck.}{7}{section*.13}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Amplitude encoding vs.\ uniform superposition.}{7}{section*.14}\protected@file@percent }
+\bibstyle{apalike}
+\bibcite{brassard2002quantum}{{1}{2002}{{Brassard et~al.}}{{}}}
+\bibcite{grossi2005catastrophe}{{2}{2005}{{Grossi and Kunreuther}}{{}}}
+\bibcite{kirke2025hhlqae}{{3}{2025}{{Kirke}}{{}}}
+\bibcite{li2017efficient}{{4}{2017}{{Li and Benjamin}}{{}}}
+\bibcite{montanaro2015quantum}{{5}{2015}{{Montanaro}}{{}}}
+\bibcite{stamatopoulos2020option}{{6}{2020}{{Stamatopoulos et~al.}}{{}}}
+\bibcite{suzuki2020amplitude}{{7}{2020}{{Suzuki et~al.}}{{}}}
+\bibcite{tannu2019mitigating}{{8}{2019}{{Tannu and Qureshi}}{{}}}
+\bibcite{temme2017error}{{9}{2017}{{Temme et~al.}}{{}}}
+\bibcite{woerner2019quantum}{{10}{2019}{{Woerner and Egger}}{{}}}
+\bibcite{zoufal2019quantum}{{11}{2019}{{Zoufal et~al.}}{{}}}
+\@writefile{toc}{\contentsline {paragraph}{Scaling considerations.}{8}{section*.15}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Implications for AI-driven catastrophe modelling.}{8}{section*.16}\protected@file@percent }
+\gdef \@abspage@last{8}

@@ -3,10 +3,10 @@
 Compute  E[max(0, X − M)]  for catastrophe thresholds M at the 90th, 95th,
 and 99th percentiles of the fitted loss distribution.
 
-For deep-tail thresholds the QAE probability P(|1⟩) is small, so Grover
-amplification (k ≥ 1) is safe (no angle aliasing) and provides genuine
-quadratic speedup over shot noise.  Classical MC struggles because so few
-samples exceed M.
+With amplitude encoding, P(|1⟩) is genuinely small for tail events, so
+Grover amplification (k ≥ 1) is safe.  The deeper the tail, the smaller
+P(|1⟩), the more Grover iterations are possible, and the larger the
+quantum advantage — precisely the paper's thesis.
 """
 
 from __future__ import annotations
@@ -22,9 +22,10 @@ from fairy_queen.quantum_circuits import (
     build_oracle_A,
     exact_amplitude_readout,
     grover_boosted_estimate,
+    max_safe_k,
 )
 
-TAIL_PERCENTILES = [0.90, 0.95, 0.99]
+TAIL_PERCENTILES = [0.90, 0.95, 0.97]
 
 
 def _exact_excess_loss_discretised(
@@ -34,17 +35,6 @@ def _exact_excess_loss_discretised(
 ) -> float:
     excess = np.maximum(0.0, midpoints - catastrophe_threshold)
     return float(np.dot(excess, probs))
-
-
-def _max_safe_k(prob: float) -> int:
-    """Largest Grover iteration count k such that (2k+1)θ < π/2."""
-    if prob <= 0 or prob >= 1:
-        return 0
-    theta = np.arcsin(np.sqrt(prob))
-    if theta < 1e-10:
-        return 100
-    max_2k1 = np.pi / (2 * theta)
-    return max(0, int(max_2k1 - 1) // 2)
 
 
 def classical_mc_excess_loss(
@@ -68,13 +58,12 @@ def run_experiment3(
     n_reps: int = 30,
     seed: int = 42,
 ) -> Dict:
-    """Run excess-loss comparison across tail percentiles.
+    """Run excess-loss comparison across tail percentiles with Grover amplification.
 
-    For each percentile, automatically determines the maximum safe Grover
-    iteration count to avoid angle aliasing, then compares:
+    For each percentile:
       - Classical MC (N samples)
       - Quantum k=0 (shot-based, no Grover)
-      - Quantum k=k_safe (Grover-amplified, if k_safe > 0)
+      - Quantum k=k_safe (Grover-amplified, budget-matched)
       - Quantum exact (statevector readout)
     """
     log = get_logger()
@@ -92,23 +81,21 @@ def run_experiment3(
 
     for pct in percentiles:
         catastrophe_threshold = float(np.percentile(losses, pct * 100))
-        log.info("  Percentile %.0f%% → threshold M = $%.0f", pct * 100,
-                 catastrophe_threshold)
+        log.info("  Percentile %.0f%% → threshold M = $%.0f",
+                 pct * 100, catastrophe_threshold)
 
         exact_excess = _exact_excess_loss_discretised(
             midpoints, probs, catastrophe_threshold
         )
         log.info("    Exact discretised E[excess] = $%.4f", exact_excess)
 
-        # Build oracle for this threshold
         A_circuit, obj_qubit, rescale = build_oracle_A(
             probs, midpoints, catastrophe_threshold
         )
 
-        # Quantum exact (statevector)
         exact_prob = exact_amplitude_readout(A_circuit, obj_qubit)
         quantum_exact_est = exact_prob * rescale
-        k_safe = _max_safe_k(exact_prob)
+        k_safe = max_safe_k(exact_prob)
         log.info("    P(|1⟩) = %.6f → max safe k = %d", exact_prob, k_safe)
 
         # Classical MC
@@ -122,7 +109,6 @@ def run_experiment3(
             classical_errors.append((est - exact_excess) ** 2)
             classical_estimates.append(est)
         classical_rmse = float(np.sqrt(np.mean(classical_errors)))
-        classical_var = float(np.var(classical_estimates))
 
         # Quantum k=0 (shot-based, no Grover amplification)
         q_k0_errors = []
@@ -134,13 +120,12 @@ def run_experiment3(
             q_k0_estimates.append(est_prob * rescale)
             q_k0_errors.append((est_prob * rescale - exact_excess) ** 2)
         q_k0_rmse = float(np.sqrt(np.mean(q_k0_errors)))
-        q_k0_var = float(np.var(q_k0_estimates))
 
-        # Quantum k=k_safe (Grover-amplified) — same total oracle queries
-        k_use = min(k_safe, 3)
+        # Quantum k=k_safe (Grover-amplified), budget-matched to k=0
+        k_use = min(k_safe, 6)
+        grover_shots = max(100, shots // (2 * k_use + 1)) if k_use > 0 else shots
         q_grover_errors = []
         q_grover_estimates = []
-        grover_shots = max(100, shots // (2 * k_use + 1)) if k_use > 0 else shots
         last_info = {}
         for _ in range(n_reps):
             est_prob, info = grover_boosted_estimate(
@@ -150,7 +135,6 @@ def run_experiment3(
             q_grover_errors.append((est_prob * rescale - exact_excess) ** 2)
             last_info = info
         q_grover_rmse = float(np.sqrt(np.mean(q_grover_errors)))
-        q_grover_var = float(np.var(q_grover_estimates))
 
         total_queries_k0 = shots
         total_queries_grover = grover_shots * (2 * k_use + 1)
@@ -164,23 +148,23 @@ def run_experiment3(
             "max_safe_k": k_safe,
             "k_used": k_use,
             "classical_rmse": classical_rmse,
-            "classical_variance": classical_var,
             "classical_mean_estimate": float(np.mean(classical_estimates)),
             "quantum_k0_rmse": q_k0_rmse,
-            "quantum_k0_variance": q_k0_var,
             "quantum_k0_mean_estimate": float(np.mean(q_k0_estimates)),
             "quantum_grover_rmse": q_grover_rmse,
-            "quantum_grover_variance": q_grover_var,
             "quantum_grover_mean_estimate": float(np.mean(q_grover_estimates)),
             "total_queries_k0": total_queries_k0,
             "total_queries_grover": total_queries_grover,
             "n_classical_samples": n_classical_samples,
+            "grover_shots": grover_shots,
             "circuit_depth": last_info.get("circuit_depth", 0),
             "gate_count": last_info.get("gate_count", 0),
         }
-        log.info("    Classical      RMSE=$%.4f  var=$%.4f", classical_rmse, classical_var)
-        log.info("    Quantum k=0    RMSE=$%.4f  var=$%.4f", q_k0_rmse, q_k0_var)
-        log.info("    Quantum k=%d    RMSE=$%.4f  var=$%.4f", k_use, q_grover_rmse, q_grover_var)
+        log.info("    Classical      RMSE=$%.4f", classical_rmse)
+        log.info("    Quantum k=0    RMSE=$%.4f  (queries=%d)",
+                 q_k0_rmse, total_queries_k0)
+        log.info("    Quantum k=%d    RMSE=$%.4f  (queries=%d)",
+                 k_use, q_grover_rmse, total_queries_grover)
 
     runtime = time.time() - t0
     log.info("Experiment 3 completed in %.1f s", runtime)

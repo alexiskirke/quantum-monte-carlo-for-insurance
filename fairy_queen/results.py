@@ -71,14 +71,14 @@ def _save_metrics_json(exp1: Dict, exp2: Dict, exp3: Dict) -> None:
 def _save_summary_csv(exp1: Dict, exp2: Dict, exp3: Dict) -> None:
     rows = []
 
-    for i, N in enumerate(exp1["sample_counts"]):
+    for qr, cr in zip(exp1["quantum_results"], exp1["classical_results"]):
         rows.append({
             "experiment": "1_convergence",
-            "parameter": f"N={N}",
-            "classical_rmse": exp1["classical_rmse"][i],
-            "quantum_rmse": exp1["quantum_k0_rmse"][i],
-            "oracle_queries": N,
-            "exact_value": exp1["exact_expected_loss"],
+            "parameter": f"k={qr['k']}",
+            "total_oracle_queries": qr["total_oracle_queries"],
+            "classical_rmse": cr["rmse"],
+            "quantum_rmse": qr["rmse"],
+            "exact_value": exp1["exact_excess_loss"],
         })
 
     for level, data in exp2.items():
@@ -87,9 +87,9 @@ def _save_summary_csv(exp1: Dict, exp2: Dict, exp3: Dict) -> None:
         rows.append({
             "experiment": "2_noise",
             "parameter": level,
+            "total_oracle_queries": None,
             "classical_rmse": None,
             "quantum_rmse": data["rmse"],
-            "oracle_queries": None,
             "exact_value": data["exact_loss"],
         })
 
@@ -97,9 +97,9 @@ def _save_summary_csv(exp1: Dict, exp2: Dict, exp3: Dict) -> None:
         rows.append({
             "experiment": "3_tail",
             "parameter": f"p={data['percentile']}",
+            "total_oracle_queries": data.get("total_queries_grover"),
             "classical_rmse": data["classical_rmse"],
             "quantum_rmse": data["quantum_grover_rmse"],
-            "oracle_queries": data.get("total_queries_grover"),
             "exact_value": data["exact_excess_loss"],
         })
 
@@ -114,31 +114,41 @@ def _save_summary_csv(exp1: Dict, exp2: Dict, exp3: Dict) -> None:
 # ------------------------------------------------------------------
 
 def _plot_exp1_convergence(exp1: Dict) -> None:
-    fig, ax = plt.subplots(figsize=(7, 5))
-    N = np.array(exp1["sample_counts"], dtype=float)
+    """Log-log plot: RMSE vs total oracle queries for classical and quantum."""
+    fig, ax = plt.subplots(figsize=(8, 5.5))
 
-    ax.loglog(N, exp1["classical_rmse"], "o-", label="Classical MC",
+    q_queries = [r["total_oracle_queries"] for r in exp1["quantum_results"]]
+    q_rmse = [r["rmse"] for r in exp1["quantum_results"]]
+    q_k = [r["k"] for r in exp1["quantum_results"]]
+
+    c_queries = [r["total_oracle_queries"] for r in exp1["classical_results"]]
+    c_rmse = [r["rmse"] for r in exp1["classical_results"]]
+
+    ax.loglog(c_queries, c_rmse, "o-", label="Classical MC",
               color="#d62728", linewidth=2, markersize=7)
-    ax.loglog(N, exp1["quantum_k0_rmse"], "s-", label="Quantum AE (k=0, shot-based)",
+    ax.loglog(q_queries, q_rmse, "s-", label="Quantum AE (Grover-amplified)",
               color="#1f77b4", linewidth=2, markersize=7)
 
+    for x, y, k in zip(q_queries, q_rmse, q_k):
+        ax.annotate(f"k={k}", (x, y), textcoords="offset points",
+                    xytext=(5, 5), fontsize=7, color="#1f77b4")
+
     # Reference slopes
-    x_ref = np.linspace(N.min(), N.max(), 100)
-    c_scale = exp1["classical_rmse"][0] * np.sqrt(N[0])
-    ax.loglog(x_ref, c_scale / np.sqrt(x_ref), "--", alpha=0.35,
+    x_ref = np.linspace(min(c_queries), max(c_queries), 200)
+    c0 = c_rmse[0] * np.sqrt(c_queries[0])
+    ax.loglog(x_ref, c0 / np.sqrt(x_ref), "--", alpha=0.3,
               color="#d62728", label=r"$O(1/\sqrt{N})$ reference")
-    q_scale = exp1["classical_rmse"][0] * N[0]
-    ax.loglog(x_ref, q_scale / x_ref, "--", alpha=0.35,
-              color="#2ca02c", label=r"$O(1/N)$ (ideal QAE)")
+    q0 = q_rmse[-1] * q_queries[-1]
+    ax.loglog(x_ref, q0 / x_ref, "--", alpha=0.3,
+              color="#2ca02c", label=r"$O(1/N)$ reference (ideal QAE)")
 
-    # Mark the exact (statevector) result at N=1
-    ax.plot(1, 0, marker="*", color="#ff7f0e", markersize=15, zorder=5,
-            label=f"Quantum exact = ${exp1['quantum_exact_loss']:.0f}  (RMSE=0)")
-
-    ax.set_xlabel("Number of Oracle Queries / Samples")
-    ax.set_ylabel("RMSE ($)")
-    ax.set_title("Experiment 1: Convergence Scaling — Classical MC vs Quantum AE")
-    ax.legend(fontsize=8)
+    ax.set_xlabel("Total Oracle Queries", fontsize=11)
+    ax.set_ylabel("RMSE ($)", fontsize=11)
+    ax.set_title("Experiment 1: Convergence — Classical MC vs Grover-Amplified QAE\n"
+                 f"(95th-pctl threshold, P(|1⟩)={exp1['readout_prob']:.4f}, "
+                 f"k_max={exp1['k_safe']})",
+                 fontsize=10)
+    ax.legend(fontsize=9)
     ax.grid(True, which="both", ls=":", alpha=0.3)
     fig.tight_layout()
 
@@ -151,6 +161,7 @@ def _plot_exp1_convergence(exp1: Dict) -> None:
 def _plot_exp2_noise(exp2: Dict) -> None:
     levels = [l for l in exp2 if not l.startswith("_")]
     rmses = [exp2[l]["rmse"] for l in levels]
+    meta = exp2.get("_meta", {})
 
     fig, ax = plt.subplots(figsize=(7, 5))
     colors = {"noiseless": "#2ca02c", "low": "#1f77b4",
@@ -162,7 +173,9 @@ def _plot_exp2_noise(exp2: Dict) -> None:
     ax.set_xticks(x)
     ax.set_xticklabels(levels)
     ax.set_ylabel("RMSE ($)")
-    ax.set_title("Experiment 2: QAE Accuracy Degradation Under NISQ Noise")
+    ax.set_title(f"Experiment 2: QAE Accuracy Under NISQ Noise "
+                 f"(k={meta.get('k_iters', '?')}, "
+                 f"P(|1⟩)={meta.get('readout_prob', 0):.4f})")
 
     for bar, r in zip(bars, rmses):
         ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height(),
@@ -185,34 +198,48 @@ def _plot_exp3_tail(exp3: Dict) -> None:
     c_rmse = [pdata[p]["classical_rmse"] for p in pcts]
     q_k0_rmse = [pdata[p]["quantum_k0_rmse"] for p in pcts]
     q_gr_rmse = [pdata[p]["quantum_grover_rmse"] for p in pcts]
-    c_var = [pdata[p]["classical_variance"] for p in pcts]
-    q_k0_var = [pdata[p]["quantum_k0_variance"] for p in pcts]
-    q_gr_var = [pdata[p]["quantum_grover_variance"] for p in pcts]
+    k_used = [pdata[p]["k_used"] for p in pcts]
+    k_max = [pdata[p]["max_safe_k"] for p in pcts]
 
-    fig, axes = plt.subplots(1, 2, figsize=(13, 5))
+    fig, axes = plt.subplots(1, 2, figsize=(14, 5.5))
 
     x = np.arange(len(pcts))
     w = 0.25
 
     # Panel A: RMSE comparison
-    axes[0].bar(x - w, c_rmse, w, label="Classical MC", color="#d62728", alpha=0.85)
-    axes[0].bar(x, q_k0_rmse, w, label="Quantum k=0", color="#1f77b4", alpha=0.85)
-    axes[0].bar(x + w, q_gr_rmse, w, label="Quantum Grover", color="#2ca02c", alpha=0.85)
+    b1 = axes[0].bar(x - w, c_rmse, w, label="Classical MC",
+                     color="#d62728", alpha=0.85)
+    b2 = axes[0].bar(x, q_k0_rmse, w, label="Quantum k=0",
+                     color="#1f77b4", alpha=0.85)
+    b3 = axes[0].bar(x + w, q_gr_rmse, w,
+                     label="Quantum Grover",
+                     color="#2ca02c", alpha=0.85)
     axes[0].set_xticks(x)
-    axes[0].set_xticklabels(labels)
+    axes[0].set_xticklabels(
+        [f"{l}\nk={ku} (max {km})" for l, ku, km in zip(labels, k_used, k_max)]
+    )
     axes[0].set_ylabel("RMSE ($)")
     axes[0].set_title("Excess-Loss RMSE by Tail Percentile")
     axes[0].legend(fontsize=8)
     axes[0].grid(axis="y", ls=":", alpha=0.3)
 
-    # Panel B: Variance comparison
-    axes[1].bar(x - w, c_var, w, label="Classical MC", color="#d62728", alpha=0.85)
-    axes[1].bar(x, q_k0_var, w, label="Quantum k=0", color="#1f77b4", alpha=0.85)
-    axes[1].bar(x + w, q_gr_var, w, label="Quantum Grover", color="#2ca02c", alpha=0.85)
+    # Panel B: oracle-query efficiency
+    q_k0_queries = [pdata[p]["total_queries_k0"] for p in pcts]
+    q_gr_queries = [pdata[p]["total_queries_grover"] for p in pcts]
+    c_samples = [pdata[p]["n_classical_samples"] for p in pcts]
+
+    # RMSE per oracle query (lower is better)
+    c_eff = [r / np.sqrt(n) if n > 0 else 0 for r, n in zip(c_rmse, c_samples)]
+    q0_eff = [r / np.sqrt(n) if n > 0 else 0 for r, n in zip(q_k0_rmse, q_k0_queries)]
+    qg_eff = [r / np.sqrt(n) if n > 0 else 0 for r, n in zip(q_gr_rmse, q_gr_queries)]
+
+    axes[1].bar(x - w, c_eff, w, label="Classical MC", color="#d62728", alpha=0.85)
+    axes[1].bar(x, q0_eff, w, label="Quantum k=0", color="#1f77b4", alpha=0.85)
+    axes[1].bar(x + w, qg_eff, w, label="Quantum Grover", color="#2ca02c", alpha=0.85)
     axes[1].set_xticks(x)
     axes[1].set_xticklabels(labels)
-    axes[1].set_ylabel("Variance ($²)")
-    axes[1].set_title("Estimator Variance by Tail Percentile")
+    axes[1].set_ylabel(r"RMSE $\times \sqrt{N}$  (normalised inefficiency)")
+    axes[1].set_title("Query Efficiency (lower = better)")
     axes[1].legend(fontsize=8)
     axes[1].grid(axis="y", ls=":", alpha=0.3)
 

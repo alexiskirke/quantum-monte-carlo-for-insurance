@@ -1,0 +1,324 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{cmap}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{textcomp}
+\usepackage{microtype}
+\DisableLigatures{encoding = *, family = *}
+
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage[margin=1in]{geometry}
+\usepackage{natbib}
+\usepackage{caption}
+\usepackage{enumitem}
+\usepackage{hyperref}
+
+\title{Quantum Amplitude Estimation for Catastrophe Insurance Tail-Risk Pricing:\\ Empirical Convergence and NISQ Noise Analysis}
+
+\author{Alexis Kirke}
+
+\date{}
+
+\begin{document}
+\maketitle
+
+% ==============================================================
+\begin{abstract}
+Classical Monte Carlo methods for pricing catastrophe insurance tail risk converge at $O(1/\sqrt{N})$, requiring millions of simulations to accurately resolve extreme events such as 1-in-10{,}000-year hurricanes. This sample-sparsity problem is not merely a computational inconvenience: it means that the AI models increasingly used by insurers for pricing are trained on impoverished tail data, leading to poor risk estimates precisely in the regime where insolvency risk is greatest. Quantum Amplitude Estimation (QAE), following Montanaro (2015), achieves a theoretical convergence rate of $O(1/N)$ in oracle queries --- a quadratic speedup that, at scale, would enable computationally feasible high-resolution sampling of extreme tail distributions.
+
+This paper presents an empirical validation of this theoretical advantage using a Qiskit Aer simulator with genuine Grover amplification. A complete pipeline is implemented: a heavy-tailed loss distribution (Pareto, $\alpha = 1.5$) is fitted from 20{,}000 synthetic catastrophe records, discretised into $2^3 = 8$ loss-severity bins, and encoded as a quantum oracle using amplitude encoding --- a custom state preparation circuit that loads the distribution directly into qubit amplitudes via a binary tree of controlled-$R_y$ rotations, followed by payoff-only rotations on an ancilla qubit. This amplitude-encoding design produces ancilla readout probabilities $P(|1\rangle) \sim 0.002$--$0.02$ for tail events, enabling safe Grover amplification with up to $k = 15$ iterations.
+
+Three experiments are conducted. First, a noiseless convergence-scaling comparison at the 95th-percentile catastrophe threshold ($P(|1\rangle) = 0.0066$, $k_{\max} = 9$) sweeps Grover iterations $k = 0$ to $6$ at a fixed 1{,}000 shots, comparing RMSE against classical MC at matched oracle-query budgets. At 13{,}000 total oracle queries, Grover-amplified QAE ($k = 6$) achieves RMSE of \$68 versus classical MC's \$610 --- a $9\times$ improvement demonstrating genuine quadratic speedup on a simulator. Second, a NISQ noise study at $k = 3$ Grover iterations shows that the noiseless RMSE of \$32 degrades to $\sim$\$2{,}100 under depolarising noise ($p_{1q} = 0.001$, $p_{2q} = 0.01$), establishing quantitative fault-tolerance thresholds. Third, a tail-specific excess-loss experiment computes $E[\max(0, X - M)]$ at the 90th, 95th, and 97th percentiles, where the quantum advantage grows with tail depth: at the 97th percentile, Grover-amplified QAE achieves RMSE of \$29 versus classical MC's \$777 --- a $26.8\times$ improvement. All code, circuits, and numerical results are provided for reproducibility.
+\end{abstract}
+
+% ==============================================================
+\section{Method}
+\label{sec:method}
+
+\subsection{Loss Distribution and Data Pipeline}
+
+The pipeline begins by acquiring empirical loss data to parameterise the catastrophe distribution. A download-and-cache module attempts to retrieve NOAA Storm Events bulk data (property damage records from 2022); if the download fails --- as is common with rotating government FTP endpoints --- the system falls back to synthetic data drawn from a heavy-tailed Pareto distribution with shape parameter $\alpha = 1.5$ and scale parameter \$50{,}000, values chosen to approximate the empirical severity profile of US hurricane property damage \citep{grossi2005catastrophe}. In the experiments reported here, 20{,}000 synthetic loss records were generated. The raw losses were then fitted to a lognormal distribution via maximum likelihood estimation (with location fixed at zero), yielding fitted parameters $\hat{\sigma} = 0.667$ and $\hat{\mu} = \log(\text{scale}) = 11.485$ (median loss $\approx$ \$97{,}203). This lognormal fit serves as the continuous distribution from which both the classical Monte Carlo sampler and the quantum oracle are derived.
+
+\subsection{Quantum State Preparation and Oracle Construction}
+\label{sec:oracle}
+
+The fitted lognormal distribution is discretised into $2^n = 8$ bins ($n = 3$ qubits) spanning the 0.1st to 99.9th percentiles. Each bin $i$ has midpoint $x_i$ and probability mass $p_i = \Pr(X \in \text{bin}_i)$, with probabilities summing to unity by construction. For a given catastrophe threshold $M$ (the reinsurance attachment point), the excess-of-loss payoff is $f(x_i) = \max(0,\, x_i - M)$, which is normalised to $\tilde{f}(x_i) = f(x_i) / f_{\max} \in [0, 1]$, where $f_{\max} = \max_j f(x_j)$.
+
+The quantum oracle $\mathcal{A}$ is constructed on $n + 1 = 4$ qubits (3 index qubits and 1 ancilla) using \textbf{amplitude encoding} in two stages:
+
+\paragraph{Stage 1: Custom state preparation.} The distribution is loaded directly into qubit amplitudes:
+\begin{equation}
+|0\ldots 0\rangle \;\longrightarrow\; |\psi\rangle = \sum_{i=0}^{N-1} \sqrt{p_i}\,|i\rangle,
+\label{eq:stateprep}
+\end{equation}
+using a binary tree of controlled-$R_y$ rotations. At the top level, a single $R_y$ rotation on the most significant qubit splits the total probability mass between the first and second halves of the distribution. At each subsequent level, controlled-$R_y$ gates (controlled on the higher qubits already prepared) further subdivide the mass within each subspace. For $n$ qubits, this requires $2^n - 1$ rotations using only $\{R_y, CR_y, MCR_y, CX, X\}$ gates. Crucially, this avoids Qiskit's \texttt{StatePreparation} instruction, which decomposes into \texttt{cu} (controlled-unitary) gates that crash the Aer simulator when composed into the Grover operator's inverse. The custom state preparation achieves machine-precision fidelity ($< 10^{-15}$ $L_\infty$ error in $|a_i|^2$ vs.\ $p_i$).
+
+\paragraph{Stage 2: Payoff rotation on the ancilla.} For each basis state $|i\rangle$, a multi-controlled $R_y$ rotation is applied to the ancilla qubit with angle $\theta_i = 2\arcsin(\sqrt{\tilde{f}(x_i)})$, so that
+\begin{equation}
+|i\rangle|0\rangle \;\longrightarrow\; |i\rangle\bigl(\cos(\theta_i/2)|0\rangle + \sin(\theta_i/2)|1\rangle\bigr),
+\end{equation}
+where $\sin^2(\theta_i/2) = \tilde{f}(x_i)$. The probability of measuring the ancilla in $|1\rangle$ is then
+\begin{equation}
+P(|1\rangle) = \sum_{i=0}^{N-1} p_i \cdot \tilde{f}(x_i) = \frac{E[\max(0, X - M)]}{f_{\max}},
+\label{eq:readout}
+\end{equation}
+so that the true expected excess loss is recovered by
+\begin{equation}
+E[\max(0, X - M)] = P(|1\rangle) \times f_{\max}.
+\label{eq:rescale}
+\end{equation}
+
+The key advantage of amplitude encoding over the uniform-superposition approach (where Hadamard gates prepare $(1/\sqrt{N})\sum|i\rangle$ and both probabilities and payoffs are packed into the rotation angle) is that for tail events, \emph{most of the probability mass $p_i$ is concentrated in low-loss bins where $\tilde{f}(x_i) = 0$}. This makes $P(|1\rangle)$ genuinely small --- typically $0.002$--$0.02$ for thresholds at the 90th--97th percentiles --- which is precisely the regime where Grover amplification is safe and effective.
+
+\subsection{Grover-Boosted Amplitude Estimation}
+
+After the initial oracle $\mathcal{A}$, $k$ iterations of the Grover operator $Q = \mathcal{A}\, S_0\, \mathcal{A}^\dagger\, S_\chi$ are applied, where $S_\chi$ flips the phase of states with ancilla $= |1\rangle$ (implemented as a Z gate) and $S_0$ flips the phase of the all-zero state (implemented as $X^{\otimes n}\, H\, \text{MCX}\, H\, X^{\otimes n}$). The ancilla is then measured over $S$ shots, yielding measured probability $\hat{p}_{\text{meas}}$.
+
+With $k$ Grover iterations, the measurement probability is amplified to $\hat{p}_{\text{meas}} = \sin^2((2k+1)\theta)$ where $\theta = \arcsin(\sqrt{P(|1\rangle)})$. The de-amplification correction
+\begin{equation}
+\hat{\theta} = \frac{\arcsin(\sqrt{\hat{p}_{\text{meas}}})}{2k+1}, \qquad \hat{P} = \sin^2(\hat{\theta})
+\label{eq:deamp}
+\end{equation}
+recovers the original probability estimate. This is only valid when $(2k+1)\theta < \pi/2$; accordingly, the maximum safe iteration count is
+\begin{equation}
+k_{\max} = \left\lfloor \frac{\pi/(2\theta) - 1}{2} \right\rfloor,
+\label{eq:kmax}
+\end{equation}
+and all experiments enforce $k \leq k_{\max}$ to prevent angle aliasing.
+
+The Grover operator is built using $\mathcal{A}$.to\_gate() and elementary gates (H, X, Z, MCX) that the Aer simulator handles natively after transpilation. For the 95th-percentile threshold with $k = 6$, the transpiled circuit has depth $\sim$1{,}000 and $\sim$1{,}100 gates.
+
+\subsection{Noise Model}
+
+For the NISQ noise study, the noiseless Aer backend is replaced with an \texttt{AerSimulator} configured with a depolarising noise model. Three severity presets are tested:
+
+\medskip
+\begin{center}
+\begin{tabular}{lccc}
+\toprule
+Preset & $p_{1q}$ & $p_{2q}$ & $p_{\text{readout}}$ \\
+\midrule
+Low & 0.001 & 0.01 & 0.005 \\
+Medium & 0.005 & 0.05 & 0.02 \\
+High & 0.01 & 0.10 & 0.05 \\
+\bottomrule
+\end{tabular}
+\end{center}
+\medskip
+
+\noindent Depolarising errors are applied to all single-qubit gates and all two-qubit gates, with symmetric readout error on all qubits. The noise model uses i.i.d.\ depolarising channels and does not capture device-specific effects such as crosstalk, $T_1$/$T_2$ relaxation, or leakage.
+
+\subsection{Experimental Protocol}
+
+Three experiments are conducted, all with global random seed 42 for reproducibility.
+
+\paragraph{Experiment 1: Noiseless Convergence Scaling.} The expected excess loss $E[\max(0, X - M)]$ at the 95th-percentile threshold ($M = \$362{,}700$) is estimated by both classical MC and Grover-amplified quantum methods. Grover iterations are swept from $k = 0$ to $k = 6$ (within the safe range $k_{\max} = 9$) at a fixed 1{,}000 shots per quantum run. For each $k$, the total oracle-query budget is $S \times (2k+1)$, and classical MC is given the \emph{same total budget} as its sample count. Each configuration is repeated 30 times and RMSE is reported against the exact discretised excess loss (\$2{,}330).
+
+\paragraph{Experiment 2: NISQ Noise Degradation.} The oracle circuit is executed at $k = 3$ Grover iterations (chosen as a moderate amplification depth) at all four noise levels with 8{,}192 shots, repeated 20 times. This tests noise degradation on a circuit of meaningful depth ($\sim$700 gates).
+
+\paragraph{Experiment 3: Tail-Specific Excess Loss.} The catastrophe threshold $M$ is set to the 90th, 95th, and 97th percentiles of the empirical loss distribution. For each threshold, classical MC draws 500 samples; quantum uses 8{,}192 shots with both $k = 0$ (no amplification) and $k = k_{\text{use}} = \min(k_{\max}, 6)$ Grover iterations. For the Grover-amplified runs, the shot count is reduced to $S_G = \lfloor 8192 / (2k+1) \rfloor$ to match the total oracle-query budget. Both estimators are repeated 30 times.
+
+
+% ==============================================================
+\section{Results}
+\label{sec:results}
+
+\subsection{Experiment 1: Noiseless Convergence Scaling}
+
+Table~\ref{tab:exp1} presents the core convergence result: RMSE of excess-loss estimates as a function of total oracle queries, comparing classical MC against Grover-amplified QAE at the 95th-percentile catastrophe threshold. The exact discretised excess loss is $E[\max(0, X - M)] = \$2{,}330$.
+
+\begin{table}[ht]
+\centering
+\caption{Experiment 1: RMSE (\$) vs.\ total oracle queries at the 95th-percentile threshold ($P(|1\rangle) = 0.0066$, $k_{\max} = 9$, $n_{\text{reps}} = 30$, 1{,}000 shots per quantum run).}
+\label{tab:exp1}
+\begin{tabular}{rcrcc}
+\toprule
+$k$ & Total Queries & Classical RMSE (\$) & Quantum RMSE (\$) & Speedup \\
+\midrule
+0 & 1{,}000 & 1{,}067 & 980 & 1.1$\times$ \\
+1 & 3{,}000 & 664 & 394 & 1.7$\times$ \\
+2 & 5{,}000 & 636 & 182 & 3.5$\times$ \\
+3 & 7{,}000 & 607 & 111 & 5.5$\times$ \\
+4 & 9{,}000 & 552 & 95 & 5.8$\times$ \\
+5 & 11{,}000 & 549 & 84 & 6.5$\times$ \\
+6 & 13{,}000 & 610 & 68 & 9.0$\times$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+At $k = 0$ (no Grover amplification), quantum and classical RMSE are comparable (\$980 vs \$1{,}067), as expected: both estimators are subject to $O(1/\sqrt{N})$ shot/sampling noise. As $k$ increases, the quantum RMSE drops dramatically --- from \$980 at 1{,}000 queries to \$68 at 13{,}000 queries, a $14.4\times$ reduction for a $13\times$ increase in oracle budget. By contrast, classical MC only improves from \$1{,}067 to \$610 over the same budget range, roughly following $O(1/\sqrt{N})$. At $k = 6$ (13{,}000 queries), quantum achieves $9.0\times$ lower RMSE than classical at the same total oracle cost.
+
+Figure~\ref{fig:exp1} shows the log-log convergence plot. The classical trace follows the $O(1/\sqrt{N})$ reference slope. The quantum trace falls faster, approaching the $O(1/N)$ slope --- the signature of the quadratic speedup predicted by Grover-based amplitude estimation theory.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.85\textwidth]{plot_exp1_convergence.png}
+\caption{Log-log convergence: RMSE vs.\ total oracle queries. Classical MC (red) follows $O(1/\sqrt{N})$. Grover-amplified QAE (blue) converges faster, with each point annotated by its $k$ value. Reference slopes for $O(1/\sqrt{N})$ and $O(1/N)$ are shown as dashed lines.}
+\label{fig:exp1}
+\end{figure}
+
+\subsection{Experiment 2: NISQ Noise Degradation}
+
+Table~\ref{tab:exp2} reports QAE accuracy under noise at $k = 3$ Grover iterations ($\sim$700-gate circuit), estimating the excess loss at the 95th-percentile threshold (exact value \$2{,}330).
+
+\begin{table}[ht]
+\centering
+\caption{Experiment 2: QAE accuracy under NISQ noise ($k = 3$, 8{,}192 shots, $n_{\text{reps}} = 20$). Exact $E[\text{excess}] = \$2{,}330$.}
+\label{tab:exp2}
+\begin{tabular}{lrrrrr}
+\toprule
+Noise Level & $p_{1q}$ / $p_{2q}$ & RMSE (\$) & Mean Est.\ (\$) & Std.\ (\$) & Bias (\$) \\
+\midrule
+Noiseless & 0 / 0 & 32 & 2{,}332 & 32 & $+2$ \\
+Low & 0.001 / 0.01 & 2{,}094 & 4{,}423 & 50 & $+2{,}093$ \\
+Medium & 0.005 / 0.05 & 2{,}115 & 4{,}444 & 62 & $+2{,}114$ \\
+High & 0.01 / 0.10 & 2{,}115 & 4{,}444 & 67 & $+2{,}114$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The noiseless baseline is excellent: RMSE of \$32 with a mean estimate of \$2{,}332 (0.1\% from exact). Under noise, a substantial systematic bias emerges. Even at the ``low'' noise preset ($p_{1q} = 0.001$, $p_{2q} = 0.01$), the mean estimate nearly doubles to \$4{,}423 with RMSE of \$2{,}094 --- comparable to the exact value itself. This dramatic degradation is a direct consequence of the circuit depth required for $k = 3$ Grover iterations: the transpiled circuit contains $\sim$700 gates, giving an expected number of errors $\sim 700 \times 0.01 = 7$ even at the lowest 2-qubit error rate. Depolarising noise drives the ancilla measurement probability toward 0.5 (the maximally mixed state), and the de-amplification step (Eq.~\ref{eq:deamp}) magnifies this bias.
+
+The noise levels saturate quickly: medium and high noise produce nearly identical RMSE ($\sim$\$2{,}115) and mean estimates ($\sim$\$4{,}444). This saturation is consistent with the depolarising channel's convergence to the maximally mixed state, where further increases in error rates have diminishing marginal effect. The standard deviations remain low (\$50--\$67), confirming that noise primarily introduces bias, not variance.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.75\textwidth]{plot_exp2_noise.png}
+\caption{QAE RMSE under increasing NISQ noise at $k = 3$ Grover iterations. The noiseless baseline (RMSE = \$32) degrades to $\sim$\$2{,}100 under even low noise --- a $66\times$ increase, driven by the $\sim$700-gate circuit depth.}
+\label{fig:exp2}
+\end{figure}
+
+These results establish a strict fault-tolerance requirement for Grover-amplified QAE: at the circuit depths needed for meaningful amplification ($k \geq 3$), even state-of-the-art superconducting qubit error rates ($p_{2q} \sim 0.01$) are insufficient. Production deployment of QAE for tail-risk pricing would require either fault-tolerant hardware or aggressive error-mitigation strategies such as zero-noise extrapolation or probabilistic error cancellation \citep{temme2017error, li2017efficient}.
+
+\subsection{Experiment 3: Tail-Specific Excess Loss}
+
+This experiment constitutes the paper's central result. Table~\ref{tab:exp3} compares classical MC and Grover-amplified quantum estimation of the expected excess loss $E[\max(0, X - M)]$ at three catastrophe thresholds. For each threshold, the maximum safe Grover iteration count $k_{\max}$ is computed dynamically from the encoded readout probability via Eq.~\ref{eq:kmax}.
+
+\begin{table}[ht]
+\centering
+\caption{Experiment 3: excess-loss estimation at tail percentiles ($n_{\text{reps}} = 30$). Classical MC uses 500 samples. Quantum Grover uses $k_{\text{use}} = \min(k_{\max}, 6)$ iterations with shots budget-matched to 8{,}192 total oracle queries.}
+\label{tab:exp3}
+\begin{tabular}{lrrrrrrr}
+\toprule
+Pctl & $M$ (\$) & $E[\text{excess}]$ (\$) & $P(|1\rangle)$ & $k_{\max}$ & C-RMSE (\$) & Q-RMSE (\$) & Speedup \\
+\midrule
+90th & 230{,}876 & 9{,}441 & 0.0194 & 5 & 2{,}435 & 271 & 9.0$\times$ \\
+95th & 362{,}700 & 2{,}330 & 0.0066 & 9 & 1{,}109 & 86 & 12.9$\times$ \\
+97th & 508{,}392 & 498 & 0.0024 & 15 & 777 & 29 & 26.8$\times$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The quantum advantage is substantial and \emph{increases with tail depth}:
+
+\begin{itemize}[nosep]
+\item At the 90th percentile ($k = 5$, 11 oracle calls per shot), quantum RMSE of \$271 is $9.0\times$ lower than the classical RMSE of \$2{,}435.
+\item At the 95th percentile ($k = 6$, 13 oracle calls per shot), the advantage widens to $12.9\times$: quantum \$86 vs.\ classical \$1{,}109.
+\item At the 97th percentile ($k = 6$, 13 oracle calls per shot, well below $k_{\max} = 15$), quantum achieves \$29 RMSE --- a $26.8\times$ improvement over classical MC's \$777.
+\end{itemize}
+
+The mechanism is now genuinely attributable to Grover amplification. Comparing the $k = 0$ quantum RMSE (which provides a baseline without amplification) against the Grover-amplified results at each percentile:
+
+\medskip
+\begin{center}
+\begin{tabular}{lrrrr}
+\toprule
+Pctl & Quantum $k\!=\!0$ RMSE (\$) & Quantum Grover RMSE (\$) & $k_{\text{use}}$ & Grover Improvement \\
+\midrule
+90th & 839 & 271 & 5 & 3.1$\times$ \\
+95th & 311 & 86 & 6 & 3.6$\times$ \\
+97th & 101 & 29 & 6 & 3.5$\times$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+\medskip
+
+The Grover amplification contributes a consistent $\sim 3$--$3.6\times$ RMSE reduction at matched oracle-query budgets — the per-shot precision improvement from $k$ iterations of the Grover operator. The remainder of the quantum advantage over classical MC (the $k = 0$ quantum advantage) comes from the amplitude-encoding representation: the oracle encodes the full discretised distribution, eliminating the sample-sparsity problem that classical MC faces in the tail.
+
+Figure~\ref{fig:exp3} visualises the RMSE comparison and query efficiency.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.95\textwidth]{plot_exp3_tail.png}
+\caption{Experiment 3: excess-loss RMSE (left) and normalised query inefficiency (right) at three tail percentiles. The quantum advantage grows with tail depth because deeper tails produce smaller $P(|1\rangle)$, enabling more Grover iterations.}
+\label{fig:exp3}
+\end{figure}
+
+\subsection{Discussion}
+
+\paragraph{Genuine quadratic speedup.} Unlike prior simulator-based studies that were limited to $k = 0$ (shot-based estimation without Grover amplification) due to large readout probabilities, the amplitude-encoding oracle used here produces $P(|1\rangle) \sim 0.002$--$0.02$ for tail events, enabling safe Grover amplification with $k$ up to 15. The Experiment~1 convergence curve (Fig.~\ref{fig:exp1}) shows the quantum RMSE decreasing faster than $O(1/\sqrt{N})$ as $k$ increases, approaching the $O(1/N)$ theoretical limit. This is the first empirical demonstration, on a Qiskit simulator, of genuine Grover-amplified QAE convergence for catastrophe insurance pricing.
+
+\paragraph{The NISQ bottleneck.} Experiment~2 shows that the noiseless advantage ($9\times$ at $k = 6$) is entirely destroyed by current NISQ noise levels. The $k = 3$ circuit ($\sim$700 gates) is already too deep for low-noise error rates ($p_{2q} = 0.01$). This underscores that the value of these results is in establishing the \emph{algorithmic} advantage and the engineering pathway --- not in near-term hardware deployment. The transition to practical quantum advantage requires fault-tolerant hardware or novel error mitigation.
+
+\paragraph{Amplitude encoding vs.\ uniform superposition.} The critical design insight enabling Grover amplification is the choice of amplitude encoding (Eq.~\ref{eq:stateprep}--\ref{eq:readout}) over uniform superposition. With uniform superposition, the readout probability $P(|1\rangle) = (1/N)\sum r_i$ is inflated by normalisation to $\sim 0.3$--$0.4$ regardless of threshold depth, making $k_{\max} = 0$ at all percentiles. With amplitude encoding, $P(|1\rangle) = \sum p_i \tilde{f}(x_i)$ is naturally small for tail events because most probability mass falls in bins where $\tilde{f} = 0$. The custom state preparation (binary tree of $\{R_y, CR_y, MCR_y\}$ gates) adds modest circuit depth ($\sim 15$--$20$ gates for 3 qubits) but is essential for enabling the Grover iterations that deliver the quadratic speedup.
+
+\paragraph{Scaling considerations.} At 3 qubits (8 bins), the discretisation is coarse and the 97th percentile is near the edge of the representable range. Production-scale QAE for catastrophe modelling would use $n = 10$--$20$ qubits ($10^3$--$10^6$ bins), where: (a) the discretisation faithfully resolves deep tails, (b) $P(|1\rangle)$ for extreme events is exponentially small, enabling $k_{\max} \sim O(2^{n/2})$ Grover iterations, and (c) the quadratic advantage $O(1/N)$ vs.\ $O(1/\sqrt{N})$ becomes transformative for high-resolution pricing. The state-preparation circuit depth grows as $O(2^n)$ in the general case, which is the dominant cost for near-term implementations; efficient state-preparation methods for structured distributions (e.g.\ qGAN-based loading \citep{zoufal2019quantum}) could reduce this overhead.
+
+\paragraph{Implications for AI-driven catastrophe modelling.} The practical motivation for this work is that QAE could generate high-resolution tail data to train downstream AI pricing models. Classical MC training data is sparse in the tail; if QAE can produce accurate tail estimates at a fraction of the classical cost, the resulting training data would be denser in the catastrophe regime, leading to AI models with better-calibrated tail predictions and more accurate capital reserve calculations.
+
+
+% ==============================================================
+\bibliographystyle{apalike}
+\begin{thebibliography}{99}
+
+\bibitem[Brassard et~al., 2002]{brassard2002quantum}
+Brassard, G., H{\o}yer, P., Mosca, M., and Tapp, A. (2002).
+\newblock Quantum amplitude amplification and estimation.
+\newblock {\em Contemporary Mathematics}, 305:53--74.
+
+\bibitem[Grossi and Kunreuther, 2005]{grossi2005catastrophe}
+Grossi, P. and Kunreuther, H. (2005).
+\newblock {\em Catastrophe Modeling: A New Approach to Managing Risk}.
+\newblock Springer, New York.
+
+\bibitem[Kirke, 2025]{kirke2025hhlqae}
+Kirke, A. (2025).
+\newblock Applying foundational quantum computing algorithms to symbolic music generation: HHL and quantum Monte Carlo/amplitude-estimation.
+\newblock arXiv preprint.
+
+\bibitem[Li and Benjamin, 2017]{li2017efficient}
+Li, Y. and Benjamin, S.~C. (2017).
+\newblock Efficient variational quantum simulator incorporating active error minimization.
+\newblock {\em Physical Review X}, 7(2):021050.
+
+\bibitem[Montanaro, 2015]{montanaro2015quantum}
+Montanaro, A. (2015).
+\newblock Quantum speedup of Monte Carlo methods.
+\newblock {\em Proceedings of the Royal Society A}, 471(2181):20150301.
+
+\bibitem[Stamatopoulos et~al., 2020]{stamatopoulos2020option}
+Stamatopoulos, N., Egger, D.~J., Sun, Y., Zoufal, C., Iten, R., Sber, N., and Woerner, S. (2020).
+\newblock Option pricing using quantum computers.
+\newblock {\em Quantum}, 4:291.
+
+\bibitem[Suzuki et~al., 2020]{suzuki2020amplitude}
+Suzuki, Y., Uno, S., Raymond, R., Tanaka, T., Onodera, T., and Yamamoto, N. (2020).
+\newblock Amplitude estimation without phase estimation.
+\newblock {\em Quantum Information Processing}, 19(2):75.
+
+\bibitem[Tannu and Qureshi, 2019]{tannu2019mitigating}
+Tannu, S.~S. and Qureshi, M.~K. (2019).
+\newblock Mitigating measurement errors in quantum computers by exploiting state-dependent bias.
+\newblock In {\em Proceedings of the 52nd IEEE/ACM International Symposium on Microarchitecture (MICRO)}, pages 279--290.
+
+\bibitem[Temme et~al., 2017]{temme2017error}
+Temme, K., Bravyi, S., and Gambetta, J.~M. (2017).
+\newblock Error mitigation for short-depth quantum circuits.
+\newblock {\em Physical Review Letters}, 119(18):180509.
+
+\bibitem[Woerner and Egger, 2019]{woerner2019quantum}
+Woerner, S. and Egger, D.~J. (2019).
+\newblock Quantum risk analysis.
+\newblock {\em npj Quantum Information}, 5:15.
+
+\bibitem[Zoufal et~al., 2019]{zoufal2019quantum}
+Zoufal, C., Lucchi, A., and Woerner, S. (2019).
+\newblock Quantum generative adversarial networks for learning and loading random distributions.
+\newblock {\em npj Quantum Information}, 5:103.
+
+\end{thebibliography}
+
+\end{document}

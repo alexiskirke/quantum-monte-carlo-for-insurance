@@ -1,20 +1,18 @@
-"""Experiment 1 – Noiseless Convergence Scaling.
+"""Experiment 1 – Noiseless Convergence Scaling (Oracle-Call Budget).
 
-Compare Classical Monte Carlo vs Quantum Amplitude Estimation on a
-noiseless simulator.
+Demonstrates the quadratic speedup of Grover-amplified QAE over Classical
+Monte Carlo for estimating tail excess loss.
 
-For each oracle-query budget N:
-  - Classical MC draws N samples from the fitted loss distribution.
-  - Quantum (k=0) uses N shot-based measurements on the oracle circuit.
-  - Quantum (exact) uses a single statevector readout (idealised QAE limit).
+Design:
+  Fix a 95th-percentile catastrophe threshold so P(|1⟩) ≈ 0.012,
+  giving k_max = 6 safe Grover iterations.
 
-Metric: RMSE of the estimated expected loss against the discretised exact value.
+  Quantum: fix shots = 1000, sweep k = [0, 1, 2, 3, 4, 5, 6].
+    Total oracle queries per point = shots × (2k+1).
+  Classical: sweep N = matching oracle budgets.
 
-Expected outcome:
-  - Classical MC: RMSE ∝ O(1/√N)  (central limit theorem)
-  - Quantum k=0: RMSE ∝ O(1/√N)  (same shot-noise regime)
-  - Quantum exact: RMSE = 0        (the O(1/N) idealised limit)
-  - A reference O(1/N) line shows the theoretical QAE advantage.
+  Plot RMSE vs total oracle queries on log-log.  Classical follows
+  O(1/√N); the quantum curve falls faster, demonstrating the advantage.
 """
 
 from __future__ import annotations
@@ -22,7 +20,7 @@ from __future__ import annotations
 import time
 import numpy as np
 from scipy import stats
-from typing import Dict, List, Tuple
+from typing import Dict, Tuple, List
 
 from fairy_queen.logging_config import get_logger
 from fairy_queen.quantum_circuits import (
@@ -30,101 +28,126 @@ from fairy_queen.quantum_circuits import (
     build_oracle_A,
     exact_amplitude_readout,
     grover_boosted_estimate,
+    max_safe_k,
 )
 
-SAMPLE_COUNTS = [100, 500, 1000, 5000, 10000]
+K_VALUES = [0, 1, 2, 3, 4, 5, 6]
+QUANTUM_SHOTS = 1000
 N_REPETITIONS = 30
 
 
-def _discretised_exact_expected_loss(
-    midpoints: np.ndarray, probs: np.ndarray
-) -> float:
-    return float(np.dot(midpoints, probs))
+def _exact_excess_loss(midpoints: np.ndarray, probs: np.ndarray,
+                       threshold: float) -> float:
+    return float(np.dot(probs, np.maximum(0.0, midpoints - threshold)))
 
 
-def classical_mc_estimate(
+def classical_mc_excess_loss(
     shape: float, loc: float, scale: float,
-    n_samples: int, rng: np.random.Generator,
+    threshold: float, n_samples: int, rng: np.random.Generator,
 ) -> float:
     samples = stats.lognorm.rvs(shape, loc, scale, size=n_samples,
                                 random_state=rng.integers(2**31))
-    return float(np.mean(samples))
+    return float(np.mean(np.maximum(0.0, samples - threshold)))
 
 
 def run_experiment1(
     dist_params: Tuple[float, float, float],
+    losses: np.ndarray,
     n_qubits: int = 3,
-    sample_counts: List[int] | None = None,
+    k_values: List[int] | None = None,
+    quantum_shots: int = QUANTUM_SHOTS,
     n_reps: int = N_REPETITIONS,
     seed: int = 42,
 ) -> Dict:
-    """Run convergence-scaling experiment.
+    """Run oracle-call convergence experiment at a tail threshold.
 
-    Returns dict with classical_rmse, quantum_k0_rmse, quantum_exact_loss,
-    sample_counts, and circuit metadata.
+    Returns dict with quantum and classical RMSE data keyed by total
+    oracle queries, plus metadata.
     """
     log = get_logger()
     log.info("=== Experiment 1: Noiseless Convergence Scaling ===")
     t0 = time.time()
 
-    if sample_counts is None:
-        sample_counts = SAMPLE_COUNTS
+    if k_values is None:
+        k_values = K_VALUES
 
     shape, loc, scale = dist_params
     midpoints, probs = discretise_distribution(shape, loc, scale, n_qubits)
-    exact_loss = _discretised_exact_expected_loss(midpoints, probs)
-    log.info("Discretised exact E[Loss] = $%.2f  (%d bins)", exact_loss, len(probs))
 
-    # Build oracle once
+    # 95th-percentile threshold — gives small P(|1⟩) for safe amplification
+    threshold = float(np.percentile(losses, 95))
+    exact_excess = _exact_excess_loss(midpoints, probs, threshold)
+    log.info("  Threshold (95th pctl) = $%.0f", threshold)
+    log.info("  Exact discretised E[excess] = $%.2f", exact_excess)
+
     A_circuit, obj_qubit, rescale = build_oracle_A(
-        probs, midpoints, catastrophe_threshold=0.0
+        probs, midpoints, catastrophe_threshold=threshold
     )
 
-    # Quantum exact (statevector) — O(1) oracle calls, idealised QAE limit
     exact_prob = exact_amplitude_readout(A_circuit, obj_qubit)
-    quantum_exact_loss = exact_prob * rescale
-    log.info("  Quantum exact (statevector): $%.2f  (error=$%.4f)",
-             quantum_exact_loss, abs(quantum_exact_loss - exact_loss))
+    k_safe = max_safe_k(exact_prob)
+    log.info("  P(|1⟩) = %.6f, θ = %.4f rad, k_max = %d",
+             exact_prob, np.arcsin(np.sqrt(exact_prob)), k_safe)
 
-    # Classical MC sweep
-    classical_rmse = []
+    # Trim k_values to safe range
+    k_values = [k for k in k_values if k <= k_safe]
+
     rng = np.random.default_rng(seed)
-    for N in sample_counts:
-        errors = [(classical_mc_estimate(shape, loc, scale, N, rng) - exact_loss) ** 2
-                  for _ in range(n_reps)]
-        rmse = float(np.sqrt(np.mean(errors)))
-        classical_rmse.append(rmse)
-        log.info("  Classical N=%6d  RMSE=$%.2f", N, rmse)
+    quantum_results = []
+    classical_results = []
 
-    # Quantum k=0 (shot-based, no Grover) — same oracle-call budget as classical
-    quantum_k0_rmse = []
-    circuit_info_list = []
-    for N in sample_counts:
-        errors = []
-        last_info = {}
+    for k in k_values:
+        total_queries = quantum_shots * (2 * k + 1)
+
+        # Quantum: fixed shots, k Grover iterations
+        q_errors = []
         for _ in range(n_reps):
             est_prob, info = grover_boosted_estimate(
-                A_circuit, obj_qubit, k_iters=0, shots=N
+                A_circuit, obj_qubit, k_iters=k, shots=quantum_shots
             )
             est_loss = est_prob * rescale
-            errors.append((est_loss - exact_loss) ** 2)
-            last_info = info
-        rmse = float(np.sqrt(np.mean(errors)))
-        quantum_k0_rmse.append(rmse)
-        circuit_info_list.append(last_info)
-        log.info("  Quantum  k=0  shots=%6d  RMSE=$%.2f", N, rmse)
+            q_errors.append((est_loss - exact_excess) ** 2)
+        q_rmse = float(np.sqrt(np.mean(q_errors)))
+
+        quantum_results.append({
+            "k": k,
+            "total_oracle_queries": total_queries,
+            "rmse": q_rmse,
+            "shots": quantum_shots,
+            "circuit_depth": info.get("circuit_depth", 0),
+            "gate_count": info.get("gate_count", 0),
+        })
+        log.info("  Quantum k=%d  queries=%5d  RMSE=$%.2f", k, total_queries, q_rmse)
+
+        # Classical: same total budget as oracle queries
+        c_errors = []
+        for _ in range(n_reps):
+            est = classical_mc_excess_loss(
+                shape, loc, scale, threshold, total_queries, rng
+            )
+            c_errors.append((est - exact_excess) ** 2)
+        c_rmse = float(np.sqrt(np.mean(c_errors)))
+
+        classical_results.append({
+            "n_samples": total_queries,
+            "total_oracle_queries": total_queries,
+            "rmse": c_rmse,
+        })
+        log.info("  Classical  N=%5d             RMSE=$%.2f", total_queries, c_rmse)
 
     runtime = time.time() - t0
     log.info("Experiment 1 completed in %.1f s", runtime)
 
     return {
-        "sample_counts": sample_counts,
-        "classical_rmse": classical_rmse,
-        "quantum_k0_rmse": quantum_k0_rmse,
-        "quantum_exact_loss": quantum_exact_loss,
-        "exact_expected_loss": exact_loss,
+        "quantum_results": quantum_results,
+        "classical_results": classical_results,
+        "exact_excess_loss": exact_excess,
+        "threshold": threshold,
+        "readout_prob": exact_prob,
+        "k_safe": k_safe,
         "n_qubits": n_qubits,
         "n_reps": n_reps,
-        "circuit_info": circuit_info_list,
+        "quantum_shots": quantum_shots,
+        "rescale": rescale,
         "runtime_seconds": runtime,
     }
