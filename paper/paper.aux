@@ -3,6 +3,7 @@
 \providecommand\HyField@AuxAddToFields[1]{}
 \providecommand\HyField@AuxAddToCoFields[2]{}
 \citation{grossi2005catastrophe}
+\citation{noaa2024storm}
 \@writefile{toc}{\contentsline {section}{\numberline {1}Method}{1}{section.1}\protected@file@percent }
 \newlabel{sec:method}{{1}{1}{Method}{section.1}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {1.1}Loss Distribution and Data Pipeline}{1}{subsection.1.1}\protected@file@percent }
@@ -38,13 +39,25 @@
 \newlabel{fig:exp2}{{2}{6}{QAE RMSE under increasing NISQ noise at $k = 3$ Grover iterations. The noiseless baseline (RMSE = \$32) degrades to $\sim $\$2{,}100 under even low noise --- a $66\times $ increase, driven by the $\sim $700-gate circuit depth}{figure.caption.9}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Experiment 3: excess-loss estimation at tail percentiles ($n_{\text  {reps}} = 30$). Classical MC uses 500 samples. Quantum Grover uses $k_{\text  {use}} = \min (k_{\max }, 6)$ iterations with shots budget-matched to 8{,}192 total oracle queries.}}{6}{table.caption.10}\protected@file@percent }
 \newlabel{tab:exp3}{{3}{6}{Experiment 3: excess-loss estimation at tail percentiles ($n_{\text {reps}} = 30$). Classical MC uses 500 samples. Quantum Grover uses $k_{\text {use}} = \min (k_{\max }, 6)$ iterations with shots budget-matched to 8{,}192 total oracle queries}{table.caption.10}{}}
-\citation{zoufal2019quantum}
+\citation{noaa2024storm}
 \@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Experiment 3: excess-loss RMSE (left) and normalised query inefficiency (right) at three tail percentiles. The quantum advantage grows with tail depth because deeper tails produce smaller $P(|1\rangle )$, enabling more Grover iterations.}}{7}{figure.caption.11}\protected@file@percent }
 \newlabel{fig:exp3}{{3}{7}{Experiment 3: excess-loss RMSE (left) and normalised query inefficiency (right) at three tail percentiles. The quantum advantage grows with tail depth because deeper tails produce smaller $P(|1\rangle )$, enabling more Grover iterations}{figure.caption.11}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.4}Discussion}{7}{subsection.2.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Genuine quadratic speedup.}{7}{section*.12}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{The NISQ bottleneck.}{7}{section*.13}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Amplitude encoding vs.\ uniform superposition.}{7}{section*.14}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.4}Experiment 4: Validation on Real Catastrophe Data}{7}{subsection.2.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{4A: Convergence on real data.}{7}{section*.12}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Experiment 4A: RMSE (\$) vs.\ oracle queries on real NOAA data (95th pctl, $n_{\text  {reps}} = 30$, 1{,}000 shots/run). Exact $E[\text  {excess}] = \$14{,}121$.}}{7}{table.caption.13}\protected@file@percent }
+\newlabel{tab:exp4a}{{4}{7}{Experiment 4A: RMSE (\$) vs.\ oracle queries on real NOAA data (95th pctl, $n_{\text {reps}} = 30$, 1{,}000 shots/run). Exact $E[\text {excess}] = \$14{,}121$}{table.caption.13}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Experiment 4A: convergence on real NOAA data. The classical MC trace is erratic due to heavy-tailed outliers (Hurricane Ian, etc.), while the quantum trace converges smoothly.}}{8}{figure.caption.14}\protected@file@percent }
+\newlabel{fig:exp4a}{{4}{8}{Experiment 4A: convergence on real NOAA data. The classical MC trace is erratic due to heavy-tailed outliers (Hurricane Ian, etc.), while the quantum trace converges smoothly}{figure.caption.14}{}}
+\@writefile{toc}{\contentsline {paragraph}{4B: Tail sweep on real data.}{8}{section*.15}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces Experiment 4B: excess-loss estimation on real NOAA data ($n_{\text  {reps}} = 30$, 8{,}192 total oracle queries).}}{8}{table.caption.16}\protected@file@percent }
+\newlabel{tab:exp4b}{{5}{8}{Experiment 4B: excess-loss estimation on real NOAA data ($n_{\text {reps}} = 30$, 8{,}192 total oracle queries)}{table.caption.16}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Experiment 4B: tail sweep on real NOAA data. Speedup factors are annotated on the Grover bars. The quantum advantage is largest at the 97th percentile ($39.1\times $).}}{9}{figure.caption.17}\protected@file@percent }
+\newlabel{fig:exp4b}{{5}{9}{Experiment 4B: tail sweep on real NOAA data. Speedup factors are annotated on the Grover bars. The quantum advantage is largest at the 97th percentile ($39.1\times $)}{figure.caption.17}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.5}Discussion}{9}{subsection.2.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Genuine quadratic speedup.}{9}{section*.18}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{The NISQ bottleneck.}{9}{section*.19}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Amplitude encoding vs.\ uniform superposition.}{9}{section*.20}\protected@file@percent }
+\citation{zoufal2019quantum}
 \bibstyle{apalike}
 \bibcite{brassard2002quantum}{{1}{2002}{{Brassard et~al.}}{{}}}
 \bibcite{grossi2005catastrophe}{{2}{2005}{{Grossi and Kunreuther}}{{}}}
@@ -56,7 +69,8 @@
 \bibcite{tannu2019mitigating}{{8}{2019}{{Tannu and Qureshi}}{{}}}
 \bibcite{temme2017error}{{9}{2017}{{Temme et~al.}}{{}}}
 \bibcite{woerner2019quantum}{{10}{2019}{{Woerner and Egger}}{{}}}
-\bibcite{zoufal2019quantum}{{11}{2019}{{Zoufal et~al.}}{{}}}
-\@writefile{toc}{\contentsline {paragraph}{Scaling considerations.}{8}{section*.15}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Implications for AI-driven catastrophe modelling.}{8}{section*.16}\protected@file@percent }
-\gdef \@abspage@last{8}
+\@writefile{toc}{\contentsline {paragraph}{Scaling considerations.}{10}{section*.21}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Implications for AI-driven catastrophe modelling.}{10}{section*.22}\protected@file@percent }
+\bibcite{noaa2024storm}{{11}{2024}{{NOAA}}{{}}}
+\bibcite{zoufal2019quantum}{{12}{2019}{{Zoufal et~al.}}{{}}}
+\gdef \@abspage@last{11}

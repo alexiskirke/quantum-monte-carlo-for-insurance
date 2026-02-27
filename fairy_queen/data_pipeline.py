@@ -1,15 +1,17 @@
 """Automated data pipeline: download, cache, fallback, and distribution fitting.
 
-Attempts to download NOAA Storm Events bulk data (property-damage column).
-Falls back to a synthetic heavy-tailed (Pareto) dataset when the download
-fails.  Fits the empirical data to a lognormal distribution and returns
-the parameters needed for quantum state preparation.
+Provides two data sources:
+  1. **Real NOAA Storm Events** – Property damage records from 2020–2024,
+     dynamically discovered from the NOAA/NCEI FTP directory.
+  2. **Synthetic Pareto** – Fallback heavy-tailed data for offline use.
+
+Both are fitted to a lognormal distribution for quantum state preparation.
 """
 
 from __future__ import annotations
 
 import json
-import os
+import re
 import gzip
 import io
 from pathlib import Path
@@ -22,10 +24,8 @@ from fairy_queen.logging_config import get_logger
 
 CACHE_DIR = Path("data/cache")
 
-NOAA_URL = (
-    "https://www1.ncdc.noaa.gov/pub/data/swdi/stormevents/csvfiles/"
-    "StormEvents_details-ftp_v1.0_d2022_c20231017.csv.gz"
-)
+NOAA_BASE_URL = "https://www.ncei.noaa.gov/pub/data/swdi/stormevents/csvfiles/"
+NOAA_YEARS = [2020, 2021, 2022, 2023, 2024]
 
 
 def _parse_noaa_damage(raw: str) -> float:
@@ -46,55 +46,115 @@ def _parse_noaa_damage(raw: str) -> float:
         return 0.0
 
 
-def download_and_cache_losses(
-    url: str = NOAA_URL,
+def _discover_noaa_urls(years: list[int] | None = None) -> list[str]:
+    """Scrape the NOAA directory listing to find the latest detail files."""
+    import requests
+
+    if years is None:
+        years = NOAA_YEARS
+
+    log = get_logger()
+    log.info("Discovering NOAA Storm Events files from %s ...", NOAA_BASE_URL)
+    resp = requests.get(NOAA_BASE_URL, timeout=30)
+    resp.raise_for_status()
+
+    pattern = r"StormEvents_details-ftp_v1\.0_d(\d{4})_c(\d{8})\.csv\.gz"
+    matches = re.findall(pattern, resp.text)
+
+    latest: dict[int, str] = {}
+    for year_str, compiled in matches:
+        yr = int(year_str)
+        if yr in years:
+            if yr not in latest or compiled > latest[yr]:
+                latest[yr] = compiled
+
+    urls = []
+    for yr in sorted(latest):
+        fname = f"StormEvents_details-ftp_v1.0_d{yr}_c{latest[yr]}.csv.gz"
+        urls.append(NOAA_BASE_URL + fname)
+        log.info("  Found: %s", fname)
+
+    return urls
+
+
+def download_and_cache_noaa(
     min_loss: float = 1_000.0,
+    years: list[int] | None = None,
 ) -> np.ndarray:
-    """Download NOAA Storm Events data, extract property damage, cache locally.
+    """Download NOAA Storm Events data across multiple years, cache locally.
 
     Returns an array of positive loss values (USD) above *min_loss*.
     """
+    import requests
+
     log = get_logger()
-    cache_file = CACHE_DIR / "noaa_losses.npy"
-    meta_file = CACHE_DIR / "noaa_meta.json"
+    cache_file = CACHE_DIR / "noaa_real_losses.npy"
+    meta_file = CACHE_DIR / "noaa_real_meta.json"
 
     if cache_file.exists():
-        log.info("Loading cached NOAA loss data from %s", cache_file)
+        log.info("Loading cached real NOAA loss data from %s", cache_file)
         losses = np.load(cache_file)
         if len(losses) > 100:
             return losses
         log.warning("Cached data too small (%d rows); re-downloading.", len(losses))
 
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    urls = _discover_noaa_urls(years)
 
-    try:
-        import requests
-
-        log.info("Downloading NOAA Storm Events from %s ...", url)
-        resp = requests.get(url, timeout=60)
+    all_damages: list[float] = []
+    for url in urls:
+        log.info("Downloading %s ...", url.split("/")[-1])
+        resp = requests.get(url, timeout=120)
         resp.raise_for_status()
 
+        import csv
         with gzip.open(io.BytesIO(resp.content), "rt", encoding="latin-1") as fh:
-            import csv
             reader = csv.DictReader(fh)
-            raw_damages = []
             for row in reader:
                 val = _parse_noaa_damage(row.get("DAMAGE_PROPERTY", ""))
                 if val >= min_loss:
-                    raw_damages.append(val)
+                    all_damages.append(val)
 
-        losses = np.array(raw_damages, dtype=np.float64)
-        log.info("Downloaded %d loss records (>= $%.0f).", len(losses), min_loss)
+    losses = np.array(all_damages, dtype=np.float64)
+    log.info("Downloaded %d real loss records (>= $%.0f) across %d years.",
+             len(losses), min_loss, len(urls))
 
-        if len(losses) < 100:
-            raise ValueError("Too few records after filtering.")
+    np.save(cache_file, losses)
+    downloaded_years = []
+    for u in urls:
+        m = re.search(r"_d(\d{4})_c", u)
+        if m:
+            downloaded_years.append(int(m.group(1)))
+    with open(meta_file, "w") as f:
+        json.dump({"source": "noaa_storm_events",
+                    "years": sorted(set(downloaded_years)),
+                    "n_records": len(losses), "min_loss": min_loss}, f)
+    return losses
 
+
+def download_and_cache_losses(
+    url: str | None = None,
+    min_loss: float = 1_000.0,
+) -> np.ndarray:
+    """Download NOAA data or fall back to synthetic. For backward compatibility."""
+    log = get_logger()
+    cache_file = CACHE_DIR / "noaa_losses.npy"
+    meta_file = CACHE_DIR / "noaa_meta.json"
+
+    if cache_file.exists():
+        log.info("Loading cached loss data from %s", cache_file)
+        losses = np.load(cache_file)
+        if len(losses) > 100:
+            return losses
+
+    CACHE_DIR.mkdir(parents=True, exist_ok=True)
+
+    try:
+        losses = download_and_cache_noaa(min_loss=min_loss)
         np.save(cache_file, losses)
         with open(meta_file, "w") as f:
-            json.dump({"source": url, "n_records": len(losses),
-                        "min_loss": min_loss}, f)
+            json.dump({"source": "noaa_real", "n_records": len(losses)}, f)
         return losses
-
     except Exception as exc:
         log.warning("NOAA download failed (%s). Generating synthetic data.", exc)
         return _generate_synthetic_losses(cache_file, meta_file)
@@ -129,6 +189,28 @@ def _generate_synthetic_losses(
         json.dump({"source": "synthetic_pareto", "n_records": n_samples,
                     "alpha": pareto_alpha, "scale": pareto_scale}, f)
     return losses
+
+
+def get_synthetic_loss_data() -> Tuple[np.ndarray, Tuple[float, float, float]]:
+    """Generate synthetic Pareto losses and fit lognormal."""
+    cache_file = CACHE_DIR / "synthetic_losses.npy"
+    meta_file = CACHE_DIR / "synthetic_meta.json"
+    CACHE_DIR.mkdir(parents=True, exist_ok=True)
+
+    if cache_file.exists():
+        losses = np.load(cache_file)
+    else:
+        losses = _generate_synthetic_losses(cache_file, meta_file)
+
+    params = fit_lognormal(losses)
+    return losses, params
+
+
+def get_real_loss_data() -> Tuple[np.ndarray, Tuple[float, float, float]]:
+    """Download real NOAA Storm Events data and fit lognormal."""
+    losses = download_and_cache_noaa()
+    params = fit_lognormal(losses)
+    return losses, params
 
 
 def fit_lognormal(losses: np.ndarray) -> Tuple[float, float, float]:
