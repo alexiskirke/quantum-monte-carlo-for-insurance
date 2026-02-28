@@ -77,15 +77,15 @@
 \newlabel{tab:exp3}{{4}{11}{Experiment~3: error decomposition at tail percentiles ($n_{\text {reps}}=30$, $\approx $8,192 queries). Q and $C_{\text {bins}}$ are RMSE vs exact-on-bins; $C_{\text {cont}}$ is RMSE vs analytic truth. Disc.\ err $= |\text {bins} - \text {analytic}|$}{table.4}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Experiment~3: estimation error vs exact-on-bins (left) comparing classical MC on the same bins and quantum Grover, with speedup ratios annotated; discretisation error vs classical continuous accuracy (right) providing end-to-end context.}}{11}{figure.3}\protected@file@percent }
 \newlabel{fig:exp3}{{3}{11}{Experiment~3: estimation error vs exact-on-bins (left) comparing classical MC on the same bins and quantum Grover, with speedup ratios annotated; discretisation error vs classical continuous accuracy (right) providing end-to-end context}{figure.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.4}Experiment~4: Validation on Real Catastrophe Data}{11}{subsection.4.4}\protected@file@percent }
 \@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces Experiment~4A: RMSE (\$) on real NOAA data (95th pctl, $n_{\text  {reps}}=30$, 1,000 shots/run). Analytic $E[\text  {excess}] = \$21{,}845$; exact-on-bins $= \$14{,}121$; disc.\ error $= \$7{,}724$.}}{12}{table.5}\protected@file@percent }
 \newlabel{tab:exp4a}{{5}{12}{Experiment~4A: RMSE (\$) on real NOAA data (95th pctl, $n_{\text {reps}}=30$, 1,000 shots/run). Analytic $E[\text {excess}] = \$21{,}845$; exact-on-bins $= \$14{,}121$; disc.\ error $= \$7{,}724$}{table.5}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.4}Experiment~4: Validation on Real Catastrophe Data}{12}{subsection.4.4}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {6}{\ignorespaces Experiment~4B: error decomposition on real NOAA data ($n_{\text  {reps}}=30$, $\approx $8,192 total queries). $C_{\text  {cont}}$ samples the continuous lognormal (RMSE vs analytic); $C_{\text  {bins}}$ and Q sample from the same 8-bin discretisation (RMSE vs exact-on-bins).}}{12}{table.6}\protected@file@percent }
+\newlabel{tab:exp4b}{{6}{12}{Experiment~4B: error decomposition on real NOAA data ($n_{\text {reps}}=30$, $\approx $8,192 total queries). $C_{\text {cont}}$ samples the continuous lognormal (RMSE vs analytic); $C_{\text {bins}}$ and Q sample from the same 8-bin discretisation (RMSE vs exact-on-bins)}{table.6}{}}
 \@writefile{toc}{\contentsline {paragraph}{4A: Convergence on real data.}{12}{section*.6}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{4B: Tail sweep on real data.}{12}{section*.7}\protected@file@percent }
 \@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Experiment~4A: convergence on real NOAA data. Left: estimation error (both methods vs exact-on-bins). Right: end-to-end error (vs analytic truth), showing the discretisation floor.}}{13}{figure.4}\protected@file@percent }
 \newlabel{fig:exp4a}{{4}{13}{Experiment~4A: convergence on real NOAA data. Left: estimation error (both methods vs exact-on-bins). Right: end-to-end error (vs analytic truth), showing the discretisation floor}{figure.4}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {6}{\ignorespaces Experiment~4B: error decomposition on real NOAA data ($n_{\text  {reps}}=30$, $\approx $8,192 total queries). $C_{\text  {cont}}$ samples the continuous lognormal (RMSE vs analytic); $C_{\text  {bins}}$ and Q sample from the same 8-bin discretisation (RMSE vs exact-on-bins).}}{13}{table.6}\protected@file@percent }
-\newlabel{tab:exp4b}{{6}{13}{Experiment~4B: error decomposition on real NOAA data ($n_{\text {reps}}=30$, $\approx $8,192 total queries). $C_{\text {cont}}$ samples the continuous lognormal (RMSE vs analytic); $C_{\text {bins}}$ and Q sample from the same 8-bin discretisation (RMSE vs exact-on-bins)}{table.6}{}}
 \@writefile{toc}{\contentsline {paragraph}{Key takeaway.}{13}{section*.8}\protected@file@percent }
 \@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Experiment~4B: tail sweep on real NOAA data. Left: estimation error on the same discretised distribution (apples-to-apples oracle comparison). Right: discretisation error vs classical continuous accuracy, showing why end-to-end accuracy favours classical when analytical access is available.}}{14}{figure.5}\protected@file@percent }
 \newlabel{fig:exp4b}{{5}{14}{Experiment~4B: tail sweep on real NOAA data. Left: estimation error on the same discretised distribution (apples-to-apples oracle comparison). Right: discretisation error vs classical continuous accuracy, showing why end-to-end accuracy favours classical when analytical access is available}{figure.5}{}}
@@ -106,11 +106,11 @@
 \newlabel{fig:exp6_gates}{{7}{16}{Experiment~6: error decomposition (left) and total RMSE vs analytic truth (right). Discretisation error dominates and remains $\sim $\$505--\$578 across all qubit counts because the bin range (0.1st--99.9th percentile) truncates the upper tail identically}{figure.7}{}}
 \@writefile{toc}{\contentsline {paragraph}{Circuit cost.}{16}{section*.13}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.7}Experiment~7: Empirical PMF (No Parametric Fit)}{16}{subsection.4.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Methods.}{16}{section*.14}\protected@file@percent }
 \@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces Experiment~6: circuit resource scaling. State-preparation two-qubit gates grow as $O(2^n)$; at $n=7$, a single oracle call requires 21,150 depth and 5,460 CX gates.}}{17}{figure.8}\protected@file@percent }
 \newlabel{fig:exp6_scaling}{{8}{17}{Experiment~6: circuit resource scaling. State-preparation two-qubit gates grow as $O(2^n)$; at $n=7$, a single oracle call requires 21,150 depth and 5,460 CX gates}{figure.8}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {9}{\ignorespaces Experiment~7: RMSE (\$) vs exact-on-bins at $B = 8{,}000$ (NOAA empirical PMF, 50 reps, quantile-binned). The exact-on-bins value is shown for reference; it requires zero samples.}}{17}{table.9}\protected@file@percent }
 \newlabel{tab:exp7}{{9}{17}{Experiment~7: RMSE (\$) vs exact-on-bins at $B = 8{,}000$ (NOAA empirical PMF, 50 reps, quantile-binned). The exact-on-bins value is shown for reference; it requires zero samples}{table.9}{}}
-\@writefile{toc}{\contentsline {paragraph}{Methods.}{17}{section*.14}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{Results.}{17}{section*.15}\protected@file@percent }
 \citation{Brassard2002}
 \@writefile{lof}{\contentsline {figure}{\numberline {9}{\ignorespaces Experiment~7: RMSE on the empirical NOAA PMF (no parametric fit). QAE achieves 1.6--2.4$\times $ lower RMSE than classical MC on the same bins. CT and IS offer no direct advantage without extra modelling.}}{18}{figure.9}\protected@file@percent }
@@ -118,20 +118,20 @@
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.8}Discussion}{18}{subsection.4.8}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{The oracle-model advantage is real.}{18}{section*.16}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{Variance-reduced classical methods win when analytical access is available.}{18}{section*.17}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Discretisation error, not estimation error, is the bottleneck.}{18}{section*.18}\protected@file@percent }
 \citation{Tannu2019}
 \citation{McKay2023}
 \citation{Reiher2017}
-\@writefile{toc}{\contentsline {paragraph}{Discretisation error, not estimation error, is the bottleneck.}{19}{section*.18}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{Equal-width vs.\ quantile binning.}{19}{section*.19}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{The NISQ bottleneck.}{19}{section*.20}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{Amplitude encoding vs.\ uniform superposition.}{19}{section*.21}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{Break-even analysis.}{19}{section*.22}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Implications for catastrophe modelling.}{19}{section*.23}\protected@file@percent }
 \citation{Zoufal2019}
 \citation{Stamatopoulos2024}
 \citation{Chakrabarti2021}
 \citation{Stamatopoulos2024}
 \bibcite{Brassard2002}{1}
-\@writefile{toc}{\contentsline {paragraph}{Implications for catastrophe modelling.}{20}{section*.23}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {5}Conclusions and Future Work}{20}{section.5}\protected@file@percent }
 \newlabel{sec:conclusions}{{5}{20}{Conclusions and Future Work}{section.5}{}}
 \bibcite{Chakrabarti2021}{2}
