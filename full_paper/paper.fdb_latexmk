@@ -1,6 +1,6 @@
 # Fdb version 4
-["pdflatex"] 1772295378.46935 "/Users/alexiskirke/Dropbox/Contracting/swyfft/quantum-mc/full_paper/paper.tex" "paper.pdf" "paper" 1772295379.67389 0
-  "/Users/alexiskirke/Dropbox/Contracting/swyfft/quantum-mc/full_paper/paper.tex" 1772295336.18161 70729 95d1913c8272762925c955e261302399 ""
+["pdflatex"] 1772315213.80409 "/Users/alexiskirke/Dropbox/Contracting/swyfft/quantum-mc/full_paper/paper.tex" "paper.pdf" "paper" 1772315215.14338 0
+  "/Users/alexiskirke/Dropbox/Contracting/swyfft/quantum-mc/full_paper/paper.tex" 1772315212.605 80919 d5e3e64aaea6e23ecf3d7bb24f10bd58 ""
   "/Users/alexiskirke/Library/TinyTeX/texmf-dist/fonts/tfm/jknappen/ec/ecbx1000.tfm" 1136768653 3584 2d666ecf6d466d8b007246bc2f94d9da ""
   "/Users/alexiskirke/Library/TinyTeX/texmf-dist/fonts/tfm/jknappen/ec/ecbx1095.tfm" 1136768653 3584 21b378cca2e40816b0e6d74a4dc98f04 ""
   "/Users/alexiskirke/Library/TinyTeX/texmf-dist/fonts/tfm/jknappen/ec/ecbx1200.tfm" 1136768653 3584 402da0b29eafbad07963b1224b222f18 ""
@@ -40,6 +40,7 @@
   "/Users/alexiskirke/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb" 1248133631 35469 70d41d2b9ea31d5d813066df7c99281c ""
   "/Users/alexiskirke/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb" 1248133631 35752 024fb6c41858982481f6968b5fc26508 ""
   "/Users/alexiskirke/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb" 1248133631 32734 69e00a6b65cedb993666e42eedb3d48f ""
+  "/Users/alexiskirke/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb" 1248133631 32762 224316ccc9ad3ca0423a14971cfa7fc1 ""
   "/Users/alexiskirke/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb" 1248133631 32726 0a1aea6fcd6468ee2cf64d891f5c43c8 ""
   "/Users/alexiskirke/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb" 1248133631 32569 5e5ddc8df908dea60932f3c484a54c0d ""
   "/Users/alexiskirke/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb" 1248133631 32626 4f5c1b83753b1dd3a97d1b399a005b4b ""
@@ -113,9 +114,9 @@
   "/Users/alexiskirke/Library/TinyTeX/texmf-var/fonts/pk/ljfour/jknappen/ec/tcrm1095.600pk" 1764105272.62334 12644 163f5681fb3c7b1de8d56a1b916587b4 ""
   "/Users/alexiskirke/Library/TinyTeX/texmf-var/web2c/pdftex/pdflatex.fmt" 1764041631 2235728 aa1865769e53572369f6b62c4431d98d ""
   "/Users/alexiskirke/Library/TinyTeX/texmf.cnf" 1764041583 637 edd806fb06a89761a6034e1968af9017 ""
-  "paper.aux" 1772295379.61227 18995 410b51fd0fed50504f07f3e17a7c2727 "pdflatex"
-  "paper.out" 1772295379.6132 5639 e982debab6c9e87affbe994a1dca55db "pdflatex"
-  "paper.tex" 1772295336.18161 70729 95d1913c8272762925c955e261302399 ""
+  "paper.aux" 1772315215.07768 20219 23997adc5b6c5b756d79d5ec93d89383 "pdflatex"
+  "paper.out" 1772315215.07892 5639 e982debab6c9e87affbe994a1dca55db "pdflatex"
+  "paper.tex" 1772315212.605 80919 d5e3e64aaea6e23ecf3d7bb24f10bd58 ""
   "plot_exp1_convergence.png" 1772194291.58804 113687 7b673e98d90de54afcdbdd84c1266118 ""
   "plot_exp2_noise.png" 1772194291.58851 43285 a0572d20feaf228566ae811e294f408c ""
   "plot_exp3_tail.png" 1772194291.58906 74914 d466697c0bab2b78b70adb8d261c6cc7 ""

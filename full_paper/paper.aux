@@ -16,14 +16,15 @@
 \citation{Chakrabarti2021}
 \citation{Grossi2005}
 \citation{Glasserman2003}
+\citation{Glasserman2003}
 \citation{Brassard2002}
 \citation{Grover1996}
 \citation{Montanaro2015}
-\citation{Suzuki2020}
 \@writefile{toc}{\contentsline {section}{\numberline {2}Related Work}{3}{section.2}\protected@file@percent }
 \newlabel{sec:related_work}{{2}{3}{Related Work}{section.2}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Classical Monte Carlo in Insurance and Finance}{3}{subsection.2.1}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.2}From Classical to Quantum Monte Carlo: The Amplitude Estimation Bridge}{3}{subsection.2.2}\protected@file@percent }
+\citation{Suzuki2020}
 \citation{Rebentrost2018}
 \citation{Woerner2019}
 \citation{Stamatopoulos2020}
@@ -49,108 +50,115 @@
 \newlabel{eq:recovery}{{4}{6}{Stage~2: Payoff rotation on the ancilla}{equation.4}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Grover-Boosted Amplitude Estimation}{6}{subsection.3.3}\protected@file@percent }
 \newlabel{eq:deamp}{{5}{6}{Grover-Boosted Amplitude Estimation}{equation.5}{}}
-\newlabel{eq:kmax}{{6}{6}{Grover-Boosted Amplitude Estimation}{equation.6}{}}
+\newlabel{eq:kmax}{{6}{7}{Grover-Boosted Amplitude Estimation}{equation.6}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.4}Noise Model}{7}{subsection.3.4}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.5}Experimental Protocol}{7}{subsection.3.5}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{Experiment~1: Noiseless Convergence Scaling.}{7}{section*.3}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{Experiment~2: NISQ Noise Degradation.}{7}{section*.4}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{Experiment~3: Tail-Specific Excess Loss.}{7}{section*.5}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Experiment~1: error decomposition at the 95th-percentile threshold ($P(\mathinner {|{1}\rangle }) = 0.0066$, $k_{\max } = 9$, $n_{\text  {reps}} = 30$, 1,000 shots/run). Analytic $E[\text  {excess}] = \$2{,}834$; exact-on-bins $= \$2{,}330$; disc.\ error $= \$505$.}}{8}{table.2}\protected@file@percent }
-\newlabel{tab:exp1}{{2}{8}{Experiment~1: error decomposition at the 95th-percentile threshold ($P(\ket {1}) = 0.0066$, $k_{\max } = 9$, $n_{\text {reps}} = 30$, 1,000 shots/run). Analytic $E[\text {excess}] = \$2{,}834$; exact-on-bins $= \$2{,}330$; disc.\ error $= \$505$}{table.2}{}}
+\citation{Glasserman2003}
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.6}Classical Baselines for Budget-Matched Comparison}{8}{subsection.3.6}\protected@file@percent }
 \newlabel{sec:baselines}{{3.6}{8}{Classical Baselines for Budget-Matched Comparison}{subsection.3.6}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {4}Results}{8}{section.4}\protected@file@percent }
 \newlabel{sec:results}{{4}{8}{Results}{section.4}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Experiment~1: Noiseless Convergence Scaling}{8}{subsection.4.1}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Experiment~1: two-panel convergence. Left: estimation error (vs exact-on-bins) for quantum AE and classical MC on the same bins. Right: end-to-end error (vs analytic truth) with discretisation error shown as a horizontal dashed line.}}{9}{figure.1}\protected@file@percent }
-\newlabel{fig:exp1}{{1}{9}{Experiment~1: two-panel convergence. Left: estimation error (vs exact-on-bins) for quantum AE and classical MC on the same bins. Right: end-to-end error (vs analytic truth) with discretisation error shown as a horizontal dashed line}{figure.1}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Experiment~2: NISQ Noise Degradation}{9}{subsection.4.2}\protected@file@percent }
 \citation{Temme2017}
 \citation{Li2017}
-\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Experiment~2: QAE accuracy under NISQ noise ($k=3$, 8,192 shots, $n_{\text  {reps}}=20$). Exact $E[\text  {excess}] = \$2{,}330$.}}{10}{table.3}\protected@file@percent }
-\newlabel{tab:exp2}{{3}{10}{Experiment~2: QAE accuracy under NISQ noise ($k=3$, 8,192 shots, $n_{\text {reps}}=20$). Exact $E[\text {excess}] = \$2{,}330$}{table.3}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces QAE RMSE under increasing NISQ noise at $k=3$ Grover iterations. The noiseless baseline (RMSE $=$ \$32) degrades to $\sim $\$2,100 under even low noise---a $66\times $ increase, driven by the $\sim $700-gate circuit depth.}}{10}{figure.2}\protected@file@percent }
-\newlabel{fig:exp2}{{2}{10}{QAE RMSE under increasing NISQ noise at $k=3$ Grover iterations. The noiseless baseline (RMSE $=$ \$32) degrades to $\sim $\$2,100 under even low noise---a $66\times $ increase, driven by the $\sim $700-gate circuit depth}{figure.2}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Experiment~1: error decomposition at the 95th-percentile threshold ($P(\mathinner {|{1}\rangle }) = 0.0066$, $k_{\max } = 9$, $n_{\text  {reps}} = 30$, 1,000 shots/run). Analytic $E[\text  {excess}] = \$2{,}834$; exact-on-bins $= \$2{,}330$; disc.\ error $= \$505$.}}{9}{table.2}\protected@file@percent }
+\newlabel{tab:exp1}{{2}{9}{Experiment~1: error decomposition at the 95th-percentile threshold ($P(\ket {1}) = 0.0066$, $k_{\max } = 9$, $n_{\text {reps}} = 30$, 1,000 shots/run). Analytic $E[\text {excess}] = \$2{,}834$; exact-on-bins $= \$2{,}330$; disc.\ error $= \$505$}{table.2}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Experiment~2: QAE accuracy under NISQ noise ($k=3$, 8,192 shots, $n_{\text  {reps}}=20$). Exact $E[\text  {excess}] = \$2{,}330$.}}{9}{table.3}\protected@file@percent }
+\newlabel{tab:exp2}{{3}{9}{Experiment~2: QAE accuracy under NISQ noise ($k=3$, 8,192 shots, $n_{\text {reps}}=20$). Exact $E[\text {excess}] = \$2{,}330$}{table.3}{}}
+\@writefile{toc}{\contentsline {paragraph}{Convergence exponents.}{9}{section*.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Experiment~2: NISQ Noise Degradation}{9}{subsection.4.2}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Experiment~1: two-panel convergence. Left: estimation error (vs exact-on-bins) for quantum AE and classical MC on the same bins. Right: end-to-end error (vs analytic truth) with discretisation error shown as a horizontal dashed line.}}{10}{figure.1}\protected@file@percent }
+\newlabel{fig:exp1}{{1}{10}{Experiment~1: two-panel convergence. Left: estimation error (vs exact-on-bins) for quantum AE and classical MC on the same bins. Right: end-to-end error (vs analytic truth) with discretisation error shown as a horizontal dashed line}{figure.1}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Experiment~3: Tail-Specific Excess Loss}{10}{subsection.4.3}\protected@file@percent }
 \citation{NOAA2024}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces QAE RMSE under increasing NISQ noise at $k=3$ Grover iterations. The noiseless baseline (RMSE $=$ \$32) degrades to $\sim $\$2,100 under even low noise---a $66\times $ increase, driven by the $\sim $700-gate circuit depth.}}{11}{figure.2}\protected@file@percent }
+\newlabel{fig:exp2}{{2}{11}{QAE RMSE under increasing NISQ noise at $k=3$ Grover iterations. The noiseless baseline (RMSE $=$ \$32) degrades to $\sim $\$2,100 under even low noise---a $66\times $ increase, driven by the $\sim $700-gate circuit depth}{figure.2}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Experiment~3: error decomposition at tail percentiles ($n_{\text  {reps}}=30$, $\approx $8,192 queries). Q and $C_{\text  {bins}}$ are RMSE vs exact-on-bins; $C_{\text  {cont}}$ is RMSE vs analytic truth. Disc.\ err $= |\text  {bins} - \text  {analytic}|$.}}{11}{table.4}\protected@file@percent }
 \newlabel{tab:exp3}{{4}{11}{Experiment~3: error decomposition at tail percentiles ($n_{\text {reps}}=30$, $\approx $8,192 queries). Q and $C_{\text {bins}}$ are RMSE vs exact-on-bins; $C_{\text {cont}}$ is RMSE vs analytic truth. Disc.\ err $= |\text {bins} - \text {analytic}|$}{table.4}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Experiment~3: estimation error vs exact-on-bins (left) comparing classical MC on the same bins and quantum Grover, with speedup ratios annotated; discretisation error vs classical continuous accuracy (right) providing end-to-end context.}}{11}{figure.3}\protected@file@percent }
-\newlabel{fig:exp3}{{3}{11}{Experiment~3: estimation error vs exact-on-bins (left) comparing classical MC on the same bins and quantum Grover, with speedup ratios annotated; discretisation error vs classical continuous accuracy (right) providing end-to-end context}{figure.3}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.4}Experiment~4: Validation on Real Catastrophe Data}{11}{subsection.4.4}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Experiment~3: estimation error vs exact-on-bins (left) comparing classical MC on the same bins and quantum Grover, with speedup ratios annotated; discretisation error vs classical continuous accuracy (right) providing end-to-end context.}}{12}{figure.3}\protected@file@percent }
+\newlabel{fig:exp3}{{3}{12}{Experiment~3: estimation error vs exact-on-bins (left) comparing classical MC on the same bins and quantum Grover, with speedup ratios annotated; discretisation error vs classical continuous accuracy (right) providing end-to-end context}{figure.3}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces Experiment~4A: RMSE (\$) on real NOAA data (95th pctl, $n_{\text  {reps}}=30$, 1,000 shots/run). Analytic $E[\text  {excess}] = \$21{,}845$; exact-on-bins $= \$14{,}121$; disc.\ error $= \$7{,}724$.}}{12}{table.5}\protected@file@percent }
 \newlabel{tab:exp4a}{{5}{12}{Experiment~4A: RMSE (\$) on real NOAA data (95th pctl, $n_{\text {reps}}=30$, 1,000 shots/run). Analytic $E[\text {excess}] = \$21{,}845$; exact-on-bins $= \$14{,}121$; disc.\ error $= \$7{,}724$}{table.5}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {6}{\ignorespaces Experiment~4B: error decomposition on real NOAA data ($n_{\text  {reps}}=30$, $\approx $8,192 total queries). $C_{\text  {cont}}$ samples the continuous lognormal (RMSE vs analytic); $C_{\text  {bins}}$ and Q sample from the same 8-bin discretisation (RMSE vs exact-on-bins).}}{12}{table.6}\protected@file@percent }
-\newlabel{tab:exp4b}{{6}{12}{Experiment~4B: error decomposition on real NOAA data ($n_{\text {reps}}=30$, $\approx $8,192 total queries). $C_{\text {cont}}$ samples the continuous lognormal (RMSE vs analytic); $C_{\text {bins}}$ and Q sample from the same 8-bin discretisation (RMSE vs exact-on-bins)}{table.6}{}}
-\@writefile{toc}{\contentsline {paragraph}{4A: Convergence on real data.}{12}{section*.6}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{4B: Tail sweep on real data.}{12}{section*.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{4A: Convergence on real data.}{12}{section*.7}\protected@file@percent }
 \@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Experiment~4A: convergence on real NOAA data. Left: estimation error (both methods vs exact-on-bins). Right: end-to-end error (vs analytic truth), showing the discretisation floor.}}{13}{figure.4}\protected@file@percent }
 \newlabel{fig:exp4a}{{4}{13}{Experiment~4A: convergence on real NOAA data. Left: estimation error (both methods vs exact-on-bins). Right: end-to-end error (vs analytic truth), showing the discretisation floor}{figure.4}{}}
-\@writefile{toc}{\contentsline {paragraph}{Key takeaway.}{13}{section*.8}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Experiment~4B: tail sweep on real NOAA data. Left: estimation error on the same discretised distribution (apples-to-apples oracle comparison). Right: discretisation error vs classical continuous accuracy, showing why end-to-end accuracy favours classical when analytical access is available.}}{14}{figure.5}\protected@file@percent }
-\newlabel{fig:exp4b}{{5}{14}{Experiment~4B: tail sweep on real NOAA data. Left: estimation error on the same discretised distribution (apples-to-apples oracle comparison). Right: discretisation error vs classical continuous accuracy, showing why end-to-end accuracy favours classical when analytical access is available}{figure.5}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {7}{\ignorespaces Experiment~5: RMSE (\$) vs analytic truth at budget $B = 8{,}000$ (synthetic data, 50 reps). ``Exact bins'' is the deterministic sum $\DOTSB \sum@ \slimits@ p_i \max (0, x_i - M)$---a non-sampling reference requiring zero queries.}}{14}{table.7}\protected@file@percent }
-\newlabel{tab:exp5}{{7}{14}{Experiment~5: RMSE (\$) vs analytic truth at budget $B = 8{,}000$ (synthetic data, 50 reps). ``Exact bins'' is the deterministic sum $\sum p_i \max (0, x_i - M)$---a non-sampling reference requiring zero queries}{table.7}{}}
+\@writefile{toc}{\contentsline {paragraph}{Convergence exponents.}{13}{section*.8}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{4B: Tail sweep on real data.}{13}{section*.9}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {6}{\ignorespaces Experiment~4B: error decomposition on real NOAA data ($n_{\text  {reps}}=30$, $\approx $8,192 total queries). $C_{\text  {cont}}$ samples the continuous lognormal (RMSE vs analytic); $C_{\text  {bins}}$ and Q sample from the same 8-bin discretisation (RMSE vs exact-on-bins). $^\dagger $Pathological: excluded from headline results due to catastrophic equal-width binning (see text).}}{14}{table.6}\protected@file@percent }
+\newlabel{tab:exp4b}{{6}{14}{Experiment~4B: error decomposition on real NOAA data ($n_{\text {reps}}=30$, $\approx $8,192 total queries). $C_{\text {cont}}$ samples the continuous lognormal (RMSE vs analytic); $C_{\text {bins}}$ and Q sample from the same 8-bin discretisation (RMSE vs exact-on-bins). $^\dagger $Pathological: excluded from headline results due to catastrophic equal-width binning (see text)}{table.6}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {7}{\ignorespaces Experiment~5: RMSE (\$) vs analytic truth at budget $B = 8{,}192$ (synthetic data, 50 reps). ``Exact bins'' is the deterministic sum $\DOTSB \sum@ \slimits@ p_i \max (0, x_i - M)$---a non-sampling reference requiring zero queries.}}{14}{table.7}\protected@file@percent }
+\newlabel{tab:exp5}{{7}{14}{Experiment~5: RMSE (\$) vs analytic truth at budget $B = 8{,}192$ (synthetic data, 50 reps). ``Exact bins'' is the deterministic sum $\sum p_i \max (0, x_i - M)$---a non-sampling reference requiring zero queries}{table.7}{}}
+\@writefile{toc}{\contentsline {paragraph}{Key takeaway.}{14}{section*.10}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.5}Experiment~5: Fair Budget-Matched Comparison}{14}{subsection.4.5}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Results.}{14}{section*.9}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Results.}{14}{section*.11}\protected@file@percent }
 \citation{Brassard2002}
-\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Experiment~5: Left: all methods at $B=8{,}000$ across three percentiles (synthetic data). CT and IS dominate because they sample the continuous fitted distribution, avoiding discretisation error entirely. Right: RMSE vs budget at the 95th percentile; CT and IS converge to zero while quantum and classical-on-bins flatten at the discretisation floor ($\approx $\$505).}}{15}{figure.6}\protected@file@percent }
-\newlabel{fig:exp5}{{6}{15}{Experiment~5: Left: all methods at $B=8{,}000$ across three percentiles (synthetic data). CT and IS dominate because they sample the continuous fitted distribution, avoiding discretisation error entirely. Right: RMSE vs budget at the 95th percentile; CT and IS converge to zero while quantum and classical-on-bins flatten at the discretisation floor ($\approx $\$505)}{figure.6}{}}
-\@writefile{toc}{\contentsline {paragraph}{Interpretation.}{15}{section*.10}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.6}Experiment~6: Discretisation vs.\ Estimation Error (Qubit Sweep)}{15}{subsection.4.6}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Ground truths.}{15}{section*.11}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Key findings.}{15}{section*.12}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Experiment~4B: tail sweep on real NOAA data. Left: estimation error on the same discretised distribution (apples-to-apples oracle comparison). Right: discretisation error vs classical continuous accuracy, showing why end-to-end accuracy favours classical when analytical access is available.}}{15}{figure.5}\protected@file@percent }
+\newlabel{fig:exp4b}{{5}{15}{Experiment~4B: tail sweep on real NOAA data. Left: estimation error on the same discretised distribution (apples-to-apples oracle comparison). Right: discretisation error vs classical continuous accuracy, showing why end-to-end accuracy favours classical when analytical access is available}{figure.5}{}}
+\@writefile{toc}{\contentsline {paragraph}{Interpretation.}{15}{section*.12}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Experiment~5: Left: all methods at $B=8{,}000$ across three percentiles (synthetic data). CT and IS dominate because they sample the continuous fitted distribution, avoiding discretisation error entirely. Right: RMSE vs budget at the 95th percentile; CT and IS converge to zero while quantum and classical-on-bins flatten at the discretisation floor ($\approx $\$505).}}{16}{figure.6}\protected@file@percent }
+\newlabel{fig:exp5}{{6}{16}{Experiment~5: Left: all methods at $B=8{,}000$ across three percentiles (synthetic data). CT and IS dominate because they sample the continuous fitted distribution, avoiding discretisation error entirely. Right: RMSE vs budget at the 95th percentile; CT and IS converge to zero while quantum and classical-on-bins flatten at the discretisation floor ($\approx $\$505)}{figure.6}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {8}{\ignorespaces Experiment~6: error decomposition across qubit counts (95th pctl, $B = 4{,}000$, 50 reps). Circuit metrics are from transpilation to $\{CX, R_z, SX, X\}$.}}{16}{table.8}\protected@file@percent }
 \newlabel{tab:circuit_resources}{{8}{16}{Experiment~6: error decomposition across qubit counts (95th pctl, $B = 4{,}000$, 50 reps). Circuit metrics are from transpilation to $\{CX, R_z, SX, X\}$}{table.8}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Experiment~6: error decomposition (left) and total RMSE vs analytic truth (right). Discretisation error dominates and remains $\sim $\$505--\$578 across all qubit counts because the bin range (0.1st--99.9th percentile) truncates the upper tail identically.}}{16}{figure.7}\protected@file@percent }
-\newlabel{fig:exp6_gates}{{7}{16}{Experiment~6: error decomposition (left) and total RMSE vs analytic truth (right). Discretisation error dominates and remains $\sim $\$505--\$578 across all qubit counts because the bin range (0.1st--99.9th percentile) truncates the upper tail identically}{figure.7}{}}
-\@writefile{toc}{\contentsline {paragraph}{Circuit cost.}{16}{section*.13}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.7}Experiment~7: Empirical PMF (No Parametric Fit)}{16}{subsection.4.7}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Methods.}{16}{section*.14}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.6}Experiment~6: Discretisation vs.\ Estimation Error (Qubit Sweep)}{16}{subsection.4.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Ground truths.}{16}{section*.13}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Key findings.}{16}{section*.14}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Experiment~6: error decomposition (left) and total RMSE vs analytic truth (right). Discretisation error dominates and remains $\sim $\$505--\$578 across all qubit counts because the bin range (0.1st--99.9th percentile) truncates the upper tail identically.}}{17}{figure.7}\protected@file@percent }
+\newlabel{fig:exp6_gates}{{7}{17}{Experiment~6: error decomposition (left) and total RMSE vs analytic truth (right). Discretisation error dominates and remains $\sim $\$505--\$578 across all qubit counts because the bin range (0.1st--99.9th percentile) truncates the upper tail identically}{figure.7}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces Experiment~6: circuit resource scaling. State-preparation two-qubit gates grow as $O(2^n)$; at $n=7$, a single oracle call requires 21,150 depth and 5,460 CX gates.}}{17}{figure.8}\protected@file@percent }
 \newlabel{fig:exp6_scaling}{{8}{17}{Experiment~6: circuit resource scaling. State-preparation two-qubit gates grow as $O(2^n)$; at $n=7$, a single oracle call requires 21,150 depth and 5,460 CX gates}{figure.8}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {9}{\ignorespaces Experiment~7: RMSE (\$) vs exact-on-bins at $B = 8{,}000$ (NOAA empirical PMF, 50 reps, quantile-binned). The exact-on-bins value is shown for reference; it requires zero samples.}}{17}{table.9}\protected@file@percent }
-\newlabel{tab:exp7}{{9}{17}{Experiment~7: RMSE (\$) vs exact-on-bins at $B = 8{,}000$ (NOAA empirical PMF, 50 reps, quantile-binned). The exact-on-bins value is shown for reference; it requires zero samples}{table.9}{}}
-\@writefile{toc}{\contentsline {paragraph}{Results.}{17}{section*.15}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Circuit cost.}{17}{section*.15}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.7}Experiment~7: Empirical PMF (No Parametric Fit)}{17}{subsection.4.7}\protected@file@percent }
 \citation{Brassard2002}
-\@writefile{lof}{\contentsline {figure}{\numberline {9}{\ignorespaces Experiment~7: RMSE on the empirical NOAA PMF (no parametric fit). QAE achieves 1.6--2.4$\times $ lower RMSE than classical MC on the same bins. CT and IS offer no direct advantage without extra modelling.}}{18}{figure.9}\protected@file@percent }
-\newlabel{fig:exp7}{{9}{18}{Experiment~7: RMSE on the empirical NOAA PMF (no parametric fit). QAE achieves 1.6--2.4$\times $ lower RMSE than classical MC on the same bins. CT and IS offer no direct advantage without extra modelling}{figure.9}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {9}{\ignorespaces Experiment~7: RMSE (\$) vs exact-on-bins at $B = 8{,}000$ (NOAA empirical PMF, 50 reps, quantile-binned). The exact-on-bins value is shown for reference; it requires zero samples.}}{18}{table.9}\protected@file@percent }
+\newlabel{tab:exp7}{{9}{18}{Experiment~7: RMSE (\$) vs exact-on-bins at $B = 8{,}000$ (NOAA empirical PMF, 50 reps, quantile-binned). The exact-on-bins value is shown for reference; it requires zero samples}{table.9}{}}
+\@writefile{toc}{\contentsline {paragraph}{Methods.}{18}{section*.16}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Results.}{18}{section*.17}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.8}Discussion}{18}{subsection.4.8}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{The oracle-model advantage is real.}{18}{section*.16}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Variance-reduced classical methods win when analytical access is available.}{18}{section*.17}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Discretisation error, not estimation error, is the bottleneck.}{18}{section*.18}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{The oracle-model advantage is real.}{18}{section*.18}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {9}{\ignorespaces Experiment~7: RMSE on the empirical NOAA PMF (no parametric fit). QAE achieves 1.6--2.4$\times $ lower RMSE than classical MC on the same bins. CT and IS offer no direct advantage without extra modelling.}}{19}{figure.9}\protected@file@percent }
+\newlabel{fig:exp7}{{9}{19}{Experiment~7: RMSE on the empirical NOAA PMF (no parametric fit). QAE achieves 1.6--2.4$\times $ lower RMSE than classical MC on the same bins. CT and IS offer no direct advantage without extra modelling}{figure.9}{}}
+\@writefile{toc}{\contentsline {paragraph}{Variance-reduced classical methods and QMC win when analytical access is available.}{19}{section*.19}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Discretisation error, not estimation error, is the bottleneck.}{19}{section*.20}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Binning strategies: equal-width, quantile, and log-spaced.}{19}{section*.21}\protected@file@percent }
 \citation{Tannu2019}
 \citation{McKay2023}
+\@writefile{lot}{\contentsline {table}{\numberline {10}{\ignorespaces Equal-width vs.\ log-spaced binning (95th pctl, $B = 4{,}000$, 30 reps). Log-spaced bins extend to the 99.99th percentile with geometric midpoints.}}{20}{table.10}\protected@file@percent }
+\newlabel{tab:logspaced}{{10}{20}{Equal-width vs.\ log-spaced binning (95th pctl, $B = 4{,}000$, 30 reps). Log-spaced bins extend to the 99.99th percentile with geometric midpoints}{table.10}{}}
+\@writefile{toc}{\contentsline {paragraph}{The NISQ bottleneck.}{20}{section*.22}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Amplitude encoding, $P(\mathinner {|{1}\rangle })$, and the resolution--amplification trade-off.}{20}{section*.23}\protected@file@percent }
 \citation{Reiher2017}
-\@writefile{toc}{\contentsline {paragraph}{Equal-width vs.\ quantile binning.}{19}{section*.19}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{The NISQ bottleneck.}{19}{section*.20}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Amplitude encoding vs.\ uniform superposition.}{19}{section*.21}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Break-even analysis.}{19}{section*.22}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Implications for catastrophe modelling.}{19}{section*.23}\protected@file@percent }
+\citation{Stamatopoulos2024}
+\citation{Chakrabarti2021}
+\@writefile{toc}{\contentsline {paragraph}{Best-case aspirational scenario.}{21}{section*.24}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Implications for catastrophe modelling.}{21}{section*.25}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Oracle compilation: from fitted distributions to catastrophe simulators.}{21}{section*.26}\protected@file@percent }
 \citation{Zoufal2019}
 \citation{Stamatopoulos2024}
 \citation{Chakrabarti2021}
 \citation{Stamatopoulos2024}
+\@writefile{toc}{\contentsline {section}{\numberline {5}Conclusions and Future Work}{22}{section.5}\protected@file@percent }
+\newlabel{sec:conclusions}{{5}{22}{Conclusions and Future Work}{section.5}{}}
 \bibcite{Brassard2002}{1}
-\@writefile{toc}{\contentsline {section}{\numberline {5}Conclusions and Future Work}{20}{section.5}\protected@file@percent }
-\newlabel{sec:conclusions}{{5}{20}{Conclusions and Future Work}{section.5}{}}
 \bibcite{Chakrabarti2021}{2}
 \bibcite{Embrechts1997}{3}
 \bibcite{Glasserman2003}{4}
 \bibcite{Grossi2005}{5}
 \bibcite{Grover1996}{6}
-\bibcite{Kirke2025}{7}
-\bibcite{Li2017}{8}
-\bibcite{McKay2023}{9}
-\bibcite{Montanaro2015}{10}
-\bibcite{NOAA2024}{11}
-\bibcite{Rebentrost2018}{12}
-\bibcite{Reiher2017}{13}
-\bibcite{Stamatopoulos2020}{14}
-\bibcite{Stamatopoulos2024}{15}
-\bibcite{Suzuki2020}{16}
-\bibcite{Tannu2019}{17}
-\bibcite{Temme2017}{18}
-\bibcite{Woerner2019}{19}
-\bibcite{Zoufal2019}{20}
-\gdef \@abspage@last{22}
+\bibcite{Li2017}{7}
+\bibcite{McKay2023}{8}
+\bibcite{Montanaro2015}{9}
+\bibcite{NOAA2024}{10}
+\bibcite{Rebentrost2018}{11}
+\bibcite{Reiher2017}{12}
+\bibcite{Stamatopoulos2020}{13}
+\bibcite{Stamatopoulos2024}{14}
+\bibcite{Suzuki2020}{15}
+\bibcite{Tannu2019}{16}
+\bibcite{Temme2017}{17}
+\bibcite{Woerner2019}{18}
+\bibcite{Zoufal2019}{19}
+\gdef \@abspage@last{24}
