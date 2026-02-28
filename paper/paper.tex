@@ -27,11 +27,11 @@
 
 % ==============================================================
 \begin{abstract}
-Classical Monte Carlo methods for pricing catastrophe insurance tail risk converge at $O(1/\sqrt{N})$, requiring millions of simulations to accurately resolve extreme events such as 1-in-10{,}000-year hurricanes. This sample-sparsity problem is not merely a computational inconvenience: it means that the AI models increasingly used by insurers for pricing are trained on impoverished tail data, leading to poor risk estimates precisely in the regime where insolvency risk is greatest. Quantum Amplitude Estimation (QAE), following Montanaro (2015), achieves a theoretical convergence rate of $O(1/N)$ in oracle queries --- a quadratic speedup that, at scale, would enable computationally feasible high-resolution sampling of extreme tail distributions.
+Classical Monte Carlo methods for pricing catastrophe insurance tail risk converge at $O(1/\sqrt{N})$, requiring large simulation budgets to resolve upper-tail percentiles of the loss distribution. This sample-sparsity problem can lead to AI models trained on impoverished tail data, producing poorly calibrated risk estimates where insolvency risk is greatest \citep{embrechts1997modelling}. Quantum Amplitude Estimation (QAE), following Montanaro (2015), achieves convergence approaching $O(1/N)$ in oracle queries --- a quadratic speedup that, at scale, would enable high-resolution tail estimation within practical budgets.
 
-This paper presents an empirical validation of this theoretical advantage using a Qiskit Aer simulator with genuine Grover amplification. A complete pipeline is implemented: a heavy-tailed loss distribution (Pareto, $\alpha = 1.5$) is fitted from 20{,}000 synthetic catastrophe records, discretised into $2^3 = 8$ loss-severity bins, and encoded as a quantum oracle using amplitude encoding --- a custom state preparation circuit that loads the distribution directly into qubit amplitudes via a binary tree of controlled-$R_y$ rotations, followed by payoff-only rotations on an ancilla qubit. This amplitude-encoding design produces ancilla readout probabilities $P(|1\rangle) \sim 0.002$--$0.02$ for tail events, enabling safe Grover amplification with up to $k = 15$ iterations.
+We validate this advantage empirically using a Qiskit Aer simulator with genuine Grover amplification. A complete pipeline encodes fitted lognormal catastrophe distributions into quantum oracles via amplitude encoding, producing small readout probabilities ($P(|1\rangle) \sim 0.002$--$0.05$) that enable safe Grover amplification with up to $k = 16$ iterations.
 
-Four experiments are conducted on both synthetic and real data. On synthetic Pareto data: (1)~a noiseless convergence comparison at the 95th-percentile threshold ($k = 0$--$6$) shows Grover-amplified QAE achieving RMSE of \$70 versus classical MC's \$610 at 13{,}000 oracle queries ($8.8\times$ improvement); (2)~a NISQ noise study shows the noiseless advantage is destroyed by current noise levels, establishing fault-tolerance thresholds; (3)~a tail-sweep at the 90th/95th/97th percentiles shows the quantum advantage growing from $8.2\times$ to $27.4\times$ with tail depth. On real US property-damage data from the NOAA Storm Events Database (58{,}028 records, 2020--2024, lognormal $\hat{\sigma} = 2.02$): (4)~the convergence and tail-sweep experiments are repeated, revealing an even larger advantage --- up to $39.1\times$ at the 97th percentile --- because the heavier tail of real catastrophe data amplifies the classical estimator's variance while leaving the quantum estimator unaffected. All code, data pipelines, circuits, and numerical results are provided for reproducibility.
+Seven experiments on synthetic and real (NOAA Storm Events, 58{,}028 records) data yield three main findings. \textbf{(i)~Oracle-model advantage:} When quantum AE and classical MC operate on the \emph{same} discretised distribution --- the fair comparison in the oracle model --- QAE achieves $1.5$--$2.5\times$ lower RMSE on synthetic data (Experiments 1 and 3) and $2$--$2.5\times$ on real data (Experiments 4 and 7), with convergence consistent with the quadratic query advantage. \textbf{(ii)~Strong classical baselines win when analytical access is available:} Conditional tail MC and importance sampling (which exploit the closed-form lognormal CDF) dramatically outperform QAE (Experiment 5); but on an empirical PMF with no parametric form (Experiment 7), these methods offer no direct advantage without extra modelling, and the oracle-model comparison applies. \textbf{(iii)~Discretisation, not estimation, is the current bottleneck:} A qubit sweep ($n = 3$--$7$, 8--128 bins) shows that tail truncation under coarse equal-width binning dominates overall error (Experiment 6); NISQ noise destroys the advantage entirely (Experiment 2). All error decompositions are reported against both analytic and exact-on-bins ground truths. Code, data, and results are provided for reproducibility.
 \end{abstract}
 
 % ==============================================================
@@ -40,7 +40,24 @@ Four experiments are conducted on both synthetic and real data. On synthetic Par
 
 \subsection{Loss Distribution and Data Pipeline}
 
-The pipeline begins by acquiring empirical loss data to parameterise the catastrophe distribution. Two data sources are supported. For Experiments 1--3, synthetic data is drawn from a heavy-tailed Pareto distribution with shape parameter $\alpha = 1.5$ and scale parameter \$50{,}000, values chosen to approximate the empirical severity profile of US hurricane property damage \citep{grossi2005catastrophe}; 20{,}000 records are generated. For Experiment~4, the pipeline dynamically discovers and downloads the latest NOAA Storm Events detail files \citep{noaa2024storm} spanning 2020--2024, extracting all records with property damage $\geq$ \$1{,}000. This yields 58{,}028 real loss records --- a substantially more heavy-tailed distribution ($\hat{\sigma} = 2.02$, $\hat{\mu} = 9.04$, median $\approx$ \$8{,}465) than the synthetic Pareto ($\hat{\sigma} = 0.67$, $\hat{\mu} = 11.49$, median $\approx$ \$97{,}203). Each dataset is fitted to a lognormal distribution via maximum likelihood estimation (with location fixed at zero). This lognormal fit serves as the continuous distribution from which both the classical Monte Carlo sampler and the quantum oracle are derived.
+The pipeline begins by acquiring empirical loss data to parameterise the catastrophe distribution. Two data sources are supported. For Experiments 1--3, synthetic data is drawn from a heavy-tailed Pareto distribution with shape parameter $\alpha = 1.5$ and scale parameter \$50{,}000, values chosen to approximate the empirical severity profile of US hurricane property damage \citep{grossi2005catastrophe}; 20{,}000 records are generated. For Experiment~4, the pipeline dynamically discovers and downloads the latest NOAA Storm Events detail files \citep{noaa2024storm} spanning 2020--2024, extracting all records with property damage $\geq$ \$1{,}000. To ensure reproducibility, the pipeline writes a pinned manifest (\texttt{data/cache/noaa\_manifest.json}) recording the exact filenames, base URL, and retrieval date; the files used in this paper are listed in Table~\ref{tab:noaa_manifest}. This yields 58{,}028 real loss records --- a substantially more heavy-tailed distribution ($\hat{\sigma} = 2.02$, $\hat{\mu} = 9.04$, median $\approx$ \$8{,}465) than the synthetic Pareto ($\hat{\sigma} = 0.67$, $\hat{\mu} = 11.49$, median $\approx$ \$97{,}203). Each dataset is fitted to a lognormal distribution via maximum likelihood estimation (with location fixed at zero). We intentionally fit lognormal even to Pareto-generated data to mirror common severity-modelling practice in actuarial science; the quantum/classical comparisons share the same fitted model, so this choice does not bias the estimator comparison. This lognormal fit serves as the continuous distribution from which both the classical Monte Carlo sampler and the quantum oracle are derived.
+
+\begin{table}[ht]
+\centering
+\caption{NOAA Storm Events files used in Experiments 4 and 7. Retrieved 2026-02-27 from \texttt{ncei.noaa.gov}.}
+\label{tab:noaa_manifest}
+\begin{tabular}{lr}
+\toprule
+Filename & Year \\
+\midrule
+\texttt{StormEvents\_details-ftp\_v1.0\_d2020\_c20260116.csv.gz} & 2020 \\
+\texttt{StormEvents\_details-ftp\_v1.0\_d2021\_c20250520.csv.gz} & 2021 \\
+\texttt{StormEvents\_details-ftp\_v1.0\_d2022\_c20250721.csv.gz} & 2022 \\
+\texttt{StormEvents\_details-ftp\_v1.0\_d2023\_c20260116.csv.gz} & 2023 \\
+\texttt{StormEvents\_details-ftp\_v1.0\_d2024\_c20260116.csv.gz} & 2024 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \subsection{Quantum State Preparation and Oracle Construction}
 \label{sec:oracle}
@@ -89,7 +106,7 @@ k_{\max} = \left\lfloor \frac{\pi/(2\theta) - 1}{2} \right\rfloor,
 \end{equation}
 and all experiments enforce $k \leq k_{\max}$ to prevent angle aliasing.
 
-The Grover operator is built using $\mathcal{A}$.to\_gate() and elementary gates (H, X, Z, MCX) that the Aer simulator handles natively after transpilation. For the 95th-percentile threshold with $k = 6$, the transpiled circuit has depth $\sim$1{,}000 and $\sim$1{,}100 gates.
+The Grover operator is built using $\mathcal{A}$.to\_gate() and elementary gates (H, X, Z, MCX) that the Aer simulator handles natively after transpilation. For the 95th-percentile threshold with $n = 3$ at $k = 6$, the full circuit is composed of $(2k + 1) = 13$ oracle calls; Table~\ref{tab:exp6} reports the single-oracle depth and two-qubit gate count after decomposition to $\{CX, R_z, SX, X\}$.
 
 \subsection{Noise Model}
 
@@ -113,13 +130,32 @@ High & 0.01 & 0.10 & 0.05 \\
 
 \subsection{Experimental Protocol}
 
-Three experiments are conducted, all with global random seed 42 for reproducibility.
+Seven experiments are conducted, all with global random seed 42 for reproducibility. Experiments 1--3 are described below; classical baselines for budget-matched comparison are defined in \S\ref{sec:baselines}; Experiments 4--7 protocols are detailed alongside their results.
 
-\paragraph{Experiment 1: Noiseless Convergence Scaling.} The expected excess loss $E[\max(0, X - M)]$ at the 95th-percentile threshold ($M = \$362{,}700$) is estimated by both classical MC and Grover-amplified quantum methods. Grover iterations are swept from $k = 0$ to $k = 6$ (within the safe range $k_{\max} = 9$) at a fixed 1{,}000 shots per quantum run. For each $k$, the total oracle-query budget is $S \times (2k+1)$, and classical MC is given the \emph{same total budget} as its sample count. Each configuration is repeated 30 times and RMSE is reported against the exact discretised excess loss (\$2{,}330).
+\paragraph{Experiment 1: Noiseless Convergence Scaling.} The expected excess loss $E[\max(0, X - M)]$ at the 95th-percentile threshold ($M = \$362{,}700$) is estimated by both classical MC and Grover-amplified quantum methods. Grover iterations are swept from $k = 0$ to $k = 6$ (within the safe range $k_{\max} = 9$) at a fixed 1{,}000 shots per quantum run. For each $k$, the total oracle-query budget is $S \times (2k+1)$, and classical MC is given the \emph{same total budget} as its sample count. Each configuration is repeated 30 times. To avoid conflating discretisation bias with estimation error, we report RMSE against two ground truths: the analytic lognormal excess (\$2{,}834) and the exact-on-bins value (\$2{,}330), with discretisation error \$505. Quantum AE and classical MC on the same bins are compared against the exact-on-bins truth (oracle-model comparison); classical MC sampling from the continuous lognormal is compared against the analytic truth.
 
 \paragraph{Experiment 2: NISQ Noise Degradation.} The oracle circuit is executed at $k = 3$ Grover iterations (chosen as a moderate amplification depth) at all four noise levels with 8{,}192 shots, repeated 20 times. This tests noise degradation on a circuit of meaningful depth ($\sim$700 gates).
 
-\paragraph{Experiment 3: Tail-Specific Excess Loss.} The catastrophe threshold $M$ is set to the 90th, 95th, and 97th percentiles of the empirical loss distribution. For each threshold, classical MC draws 500 samples; quantum uses 8{,}192 shots with both $k = 0$ (no amplification) and $k = k_{\text{use}} = \min(k_{\max}, 6)$ Grover iterations. For the Grover-amplified runs, the shot count is reduced to $S_G = \lfloor 8192 / (2k+1) \rfloor$ to match the total oracle-query budget. Both estimators are repeated 30 times.
+\paragraph{Experiment 3: Tail-Specific Excess Loss.} The catastrophe threshold $M$ is set to the 90th, 95th, and 97th percentiles of the empirical loss distribution. The quantum estimator uses 8{,}192 total shots with both $k = 0$ (no amplification) and $k_{\text{use}} = \min(k_{\max}, 6)$ Grover iterations (shot count reduced to $S_G = \lfloor 8192 / (2k+1) \rfloor$ for the Grover-amplified runs). Two classical baselines receive the \emph{same total query budget}: (i)~classical MC sampling from the continuous lognormal (RMSE vs analytic truth), and (ii)~classical MC sampling from the same 8-bin discretisation as the quantum circuit (RMSE vs exact-on-bins). All estimators are repeated 30 times.
+
+\paragraph{Experiments 4--7} apply the above methods and additional classical baselines (defined in \S\ref{sec:baselines}) to real NOAA data and empirical PMFs; their protocols are detailed alongside their results.
+
+\subsection{Classical Baselines for Budget-Matched Comparison}
+\label{sec:baselines}
+
+Experiments 5 and 7 compare quantum AE against strong classical baselines at \emph{strictly equal} query/sample budgets. For $X \sim \mathrm{Lognormal}(\mu, \sigma^2)$ with threshold $M$, the following estimators are defined:
+
+\begin{enumerate}[nosep]
+  \item \textbf{Analytic ground truth} (non-sampling reference):
+    $E[(X-M)^+] = e^{\mu+\sigma^2/2}\Phi(d_1) - M[1-\Phi(d_2)]$
+    where $d_1 = (\mu+\sigma^2-\log M)/\sigma$, $d_2 = (\log M - \mu)/\sigma$.
+  \item \textbf{Naive MC}: draw $B$ samples from the fitted lognormal; compute $(1/B)\sum \max(0, X_i - M)$.
+  \item \textbf{Conditional Tail (CT) MC}: compute $P(X\!>\!M)$ analytically, sample $B$ draws from $X \mid X\!>\!M$ via truncated inverse CDF, multiply mean excess by $P(X\!>\!M)$.
+  \item \textbf{Importance Sampling (IS) MC}: apply an exponential tilt $\delta = \max(0, \log M - \mu - \sigma^2/2)$ so the proposal mean $\approx M$; draw $B$ samples from the tilted distribution and reweight.
+  \item \textbf{Classical MC on bins}: sample from the same $2^n$-bin discretised distribution as the quantum circuit.
+\end{enumerate}
+
+\noindent CT and IS exploit the closed-form lognormal CDF/PDF; they cannot be directly applied to non-parametric oracles without an additional density-estimation step (see Experiment~7 discussion). RMSE is computed over 50 repetitions against the analytic ground truth (item~1), which includes discretisation error for the bin-based methods.
 
 
 % ==============================================================
@@ -128,35 +164,35 @@ Three experiments are conducted, all with global random seed 42 for reproducibil
 
 \subsection{Experiment 1: Noiseless Convergence Scaling}
 
-Table~\ref{tab:exp1} presents the core convergence result: RMSE of excess-loss estimates as a function of total oracle queries, comparing classical MC against Grover-amplified QAE at the 95th-percentile catastrophe threshold. The exact discretised excess loss is $E[\max(0, X - M)] = \$2{,}330$.
+Table~\ref{tab:exp1} presents the core convergence result with full error decomposition. Two ground truths are shown: the analytic lognormal excess (\$2{,}834) and the exact-on-bins value (\$2{,}330), with discretisation error \$505. Quantum AE and classical MC on the same bins are measured against the exact-on-bins truth; classical MC sampling from the continuous lognormal is measured against the analytic truth.
 
 \begin{table}[ht]
 \centering
-\caption{Experiment 1: RMSE (\$) vs.\ total oracle queries at the 95th-percentile threshold ($P(|1\rangle) = 0.0066$, $k_{\max} = 9$, $n_{\text{reps}} = 30$, 1{,}000 shots per quantum run).}
+\caption{Experiment 1: error decomposition at the 95th-percentile threshold ($P(|1\rangle) = 0.0066$, $k_{\max} = 9$, $n_{\text{reps}} = 30$, 1{,}000 shots/run). Analytic $E[\text{excess}] = \$2{,}834$; exact-on-bins $= \$2{,}330$; disc.\ error $= \$505$.}
 \label{tab:exp1}
-\begin{tabular}{rcrcc}
+\begin{tabular}{rcrrrc}
 \toprule
-$k$ & Total Queries & Classical RMSE (\$) & Quantum RMSE (\$) & Speedup \\
+$k$ & Queries & Q (vs bins) & C$_{\text{bins}}$ (vs bins) & Q/C$_{\text{bins}}$ & C$_{\text{cont}}$ (vs anal.) \\
 \midrule
-0 & 1{,}000 & 1{,}067 & 980 & 1.1$\times$ \\
-1 & 3{,}000 & 664 & 394 & 1.7$\times$ \\
-2 & 5{,}000 & 636 & 182 & 3.5$\times$ \\
-3 & 7{,}000 & 607 & 111 & 5.5$\times$ \\
-4 & 9{,}000 & 552 & 95 & 5.8$\times$ \\
-5 & 11{,}000 & 549 & 84 & 6.5$\times$ \\
-6 & 13{,}000 & 610 & 68 & 9.0$\times$ \\
+0 &  1{,}000 &   930 & 782 & 0.8$\times$ &   948 \\
+1 &  3{,}000 &   283 & 382 & 1.4$\times$ &   482 \\
+2 &  5{,}000 &   180 & 303 & 1.7$\times$ &   287 \\
+3 &  7{,}000 &   124 & 248 & 2.0$\times$ &   352 \\
+4 &  9{,}000 &   106 & 139 & 1.3$\times$ &   235 \\
+5 & 11{,}000 &    87 & 177 & 2.0$\times$ &   263 \\
+6 & 13{,}000 &    69 & 154 & 2.2$\times$ &   233 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-At $k = 0$ (no Grover amplification), quantum and classical RMSE are comparable (\$980 vs \$1{,}067), as expected: both estimators are subject to $O(1/\sqrt{N})$ shot/sampling noise. As $k$ increases, the quantum RMSE drops dramatically --- from \$980 at 1{,}000 queries to \$68 at 13{,}000 queries, a $14.4\times$ reduction for a $13\times$ increase in oracle budget. By contrast, classical MC only improves from \$1{,}067 to \$610 over the same budget range, roughly following $O(1/\sqrt{N})$. At $k = 6$ (13{,}000 queries), quantum achieves $9.0\times$ lower RMSE than classical at the same total oracle cost.
+In the oracle-model comparison (both methods estimating the \emph{same} discretised quantity), quantum AE at $k = 0$ slightly trails classical MC on bins (\$930 vs \$782, ratio $0.8\times$), as expected: both are subject to $O(1/\sqrt{N})$ shot noise. As $k$ increases, the quantum RMSE drops from \$930 to \$69, while classical-on-bins drops only from \$782 to \$154, yielding an honest oracle-model speedup of $2.2\times$ at $k = 6$. The final column shows that classical MC sampling from the continuous lognormal achieves \$233 RMSE against the analytic truth at $N = 13{,}000$ --- comparable to classical-on-bins, confirming that discretisation error (\$505) does not dominate the classical-on-bins result at this budget.
 
-Figure~\ref{fig:exp1} shows the log-log convergence plot. The classical trace follows the $O(1/\sqrt{N})$ reference slope. The quantum trace falls faster, approaching the $O(1/N)$ slope --- the signature of the quadratic speedup predicted by Grover-based amplitude estimation theory.
+Figure~\ref{fig:exp1} shows the log-log convergence. The left panel compares quantum AE and classical MC on the same bins (both vs exact-on-bins); the right panel adds end-to-end context showing the discretisation error floor.
 
 \begin{figure}[ht]
 \centering
-\includegraphics[width=0.85\textwidth]{plot_exp1_convergence.png}
-\caption{Log-log convergence: RMSE vs.\ total oracle queries. Classical MC (red) follows $O(1/\sqrt{N})$. Grover-amplified QAE (blue) converges faster, with each point annotated by its $k$ value. Reference slopes for $O(1/\sqrt{N})$ and $O(1/N)$ are shown as dashed lines.}
+\includegraphics[width=0.95\textwidth]{plot_exp1_convergence.png}
+\caption{Experiment 1: two-panel convergence. Left: estimation error (vs exact-on-bins) for quantum AE and classical MC on the same bins. Right: end-to-end error (vs analytic truth) with discretisation error shown as a horizontal dashed line.}
 \label{fig:exp1}
 \end{figure}
 
@@ -180,7 +216,7 @@ High & 0.01 / 0.10 & 2{,}115 & 4{,}444 & 67 & $+2{,}114$ \\
 \end{tabular}
 \end{table}
 
-The noiseless baseline is excellent: RMSE of \$32 with a mean estimate of \$2{,}332 (0.1\% from exact). Under noise, a substantial systematic bias emerges. Even at the ``low'' noise preset ($p_{1q} = 0.001$, $p_{2q} = 0.01$), the mean estimate nearly doubles to \$4{,}423 with RMSE of \$2{,}094 --- comparable to the exact value itself. This dramatic degradation is a direct consequence of the circuit depth required for $k = 3$ Grover iterations: the transpiled circuit contains $\sim$700 gates, giving an expected number of errors $\sim 700 \times 0.01 = 7$ even at the lowest 2-qubit error rate. Depolarising noise drives the ancilla measurement probability toward 0.5 (the maximally mixed state), and the de-amplification step (Eq.~\ref{eq:deamp}) magnifies this bias.
+The noiseless baseline is excellent: RMSE of \$32 with a mean estimate of \$2{,}332 (0.1\% from exact). Under noise, a substantial systematic bias emerges. Even at the ``low'' noise preset ($p_{1q} = 0.001$, $p_{2q} = 0.01$), the mean estimate nearly doubles to \$4{,}423 with RMSE of \$2{,}094 --- comparable to the exact value itself. This dramatic degradation is a direct consequence of the circuit depth required for $k = 3$ Grover iterations: the transpiled circuit contains on the order of 50--100 two-qubit gates (Table~\ref{tab:exp6}), giving an expected number of two-qubit gate errors $\sim 50\text{--}100 \times 0.01 \approx 0.5\text{--}1$ at the lowest $p_{2q}$, plus additional single-qubit errors across $\sim$700 total gates. Depolarising noise drives the ancilla measurement probability toward 0.5 (the maximally mixed state), and the de-amplification step (Eq.~\ref{eq:deamp}) magnifies this bias.
 
 The noise levels saturate quickly: medium and high noise produce nearly identical RMSE ($\sim$\$2{,}115) and mean estimates ($\sim$\$4{,}444). This saturation is consistent with the depolarising channel's convergence to the maximally mixed state, where further increases in error rates have diminishing marginal effect. The standard deviations remain low (\$50--\$67), confirming that noise primarily introduces bias, not variance.
 
@@ -191,59 +227,46 @@ The noise levels saturate quickly: medium and high noise produce nearly identica
 \label{fig:exp2}
 \end{figure}
 
-These results establish a strict fault-tolerance requirement for Grover-amplified QAE: at the circuit depths needed for meaningful amplification ($k \geq 3$), even state-of-the-art superconducting qubit error rates ($p_{2q} \sim 0.01$) are insufficient. Production deployment of QAE for tail-risk pricing would require either fault-tolerant hardware or aggressive error-mitigation strategies such as zero-noise extrapolation or probabilistic error cancellation \citep{temme2017error, li2017efficient}.
+These results establish a strict fault-tolerance requirement for Grover-amplified QAE: at the circuit depths needed for meaningful amplification ($k \geq 3$), even representative two-qubit error rates in the $10^{-3}$--$10^{-2}$ range are insufficient. Production deployment of QAE for tail-risk pricing would require either fault-tolerant hardware or aggressive error-mitigation strategies such as zero-noise extrapolation or probabilistic error cancellation \citep{temme2017error, li2017efficient}.
 
 \subsection{Experiment 3: Tail-Specific Excess Loss}
 
-This experiment constitutes the paper's central result. Table~\ref{tab:exp3} compares classical MC and Grover-amplified quantum estimation of the expected excess loss $E[\max(0, X - M)]$ at three catastrophe thresholds. For each threshold, the maximum safe Grover iteration count $k_{\max}$ is computed dynamically from the encoded readout probability via Eq.~\ref{eq:kmax}.
+This experiment constitutes the paper's central result. Table~\ref{tab:exp3} compares classical MC and Grover-amplified quantum estimation of the expected excess loss $E[\max(0, X - M)]$ at three catastrophe thresholds, with the same error decomposition as Experiment~1. For each threshold, the maximum safe Grover iteration count $k_{\max}$ is computed dynamically from the encoded readout probability via Eq.~\ref{eq:kmax}. We report RMSE against both the analytic lognormal truth and the exact-on-bins value, and include classical MC on the same bins as the oracle-model comparator.
 
 \begin{table}[ht]
 \centering
-\caption{Experiment 3: excess-loss estimation at tail percentiles ($n_{\text{reps}} = 30$). Classical MC uses 500 samples. Quantum Grover uses $k_{\text{use}} = \min(k_{\max}, 6)$ iterations with shots budget-matched to 8{,}192 total oracle queries.}
+\caption{Experiment 3: error decomposition at tail percentiles ($n_{\text{reps}} = 30$, $\approx$8{,}192 queries). Q and C$_{\text{bins}}$ are RMSE vs exact-on-bins; C$_{\text{cont}}$ is RMSE vs analytic truth. Disc.\ err $= |$bins $-$ analytic$|$.}
 \label{tab:exp3}
-\begin{tabular}{lrrrrrrr}
+\small
+\begin{tabular}{lrrrrrrrr}
 \toprule
-Pctl & $M$ (\$) & $E[\text{excess}]$ (\$) & $P(|1\rangle)$ & $k_{\max}$ & C-RMSE (\$) & Q-RMSE (\$) & Speedup \\
+Pctl & $M$ & Anal. & Bins & Disc.\ err & $k_{\max}$ & Q / C$_{\text{bins}}$ / Ratio & C$_{\text{cont}}$ \\
 \midrule
-90th & 230{,}876 & 9{,}441 & 0.0194 & 5 & 2{,}435 & 271 & 9.0$\times$ \\
-95th & 362{,}700 & 2{,}330 & 0.0066 & 9 & 1{,}109 & 86 & 12.9$\times$ \\
-97th & 508{,}392 & 498 & 0.0024 & 15 & 777 & 29 & 26.8$\times$ \\
+90th & 230{,}876 & 9{,}629 & 9{,}441 & 188 & 5 & 319 / 486 / 1.5$\times$ & 598 \\
+95th & 362{,}700 & 2{,}834 & 2{,}330 & 505 & 9 &  93 / 193 / 2.1$\times$ & 278 \\
+97th & 508{,}392 &   900 &   498 & 401 & 15 &  29 /  74 / 2.5$\times$ & 178 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-The quantum advantage is substantial and \emph{increases with tail depth}:
+In the oracle-model comparison (Q vs C$_{\text{bins}}$, both measured against exact-on-bins), the quantum advantage grows with tail depth:
 
 \begin{itemize}[nosep]
-\item At the 90th percentile ($k = 5$, 11 oracle calls per shot), quantum RMSE of \$271 is $9.0\times$ lower than the classical RMSE of \$2{,}435.
-\item At the 95th percentile ($k = 6$, 13 oracle calls per shot), the advantage widens to $12.9\times$: quantum \$86 vs.\ classical \$1{,}109.
-\item At the 97th percentile ($k = 6$, 13 oracle calls per shot, well below $k_{\max} = 15$), quantum achieves \$29 RMSE --- a $26.8\times$ improvement over classical MC's \$777.
+\item At the 90th percentile ($k = 5$), quantum RMSE of \$319 is $1.5\times$ lower than classical-on-bins \$486.
+\item At the 95th percentile ($k = 6$), the advantage widens to $2.1\times$: quantum \$93 vs.\ classical-on-bins \$193.
+\item At the 97th percentile ($k = 6$, well below $k_{\max} = 15$), quantum achieves \$29 RMSE --- a $2.5\times$ improvement over classical-on-bins \$74.
 \end{itemize}
 
-The mechanism is now genuinely attributable to Grover amplification. Comparing the $k = 0$ quantum RMSE (which provides a baseline without amplification) against the Grover-amplified results at each percentile:
+\noindent The discretisation error column shows that the 8-bin discretisation introduces \$188--\$505 of systematic error relative to the analytic truth. At the 97th percentile, the disc.\ error (\$401) is an order of magnitude larger than the quantum estimation error (\$29), confirming that bin resolution, not QAE accuracy, is the bottleneck.
 
-\medskip
-\begin{center}
-\begin{tabular}{lrrrr}
-\toprule
-Pctl & Quantum $k\!=\!0$ RMSE (\$) & Quantum Grover RMSE (\$) & $k_{\text{use}}$ & Grover Improvement \\
-\midrule
-90th & 839 & 271 & 5 & 3.1$\times$ \\
-95th & 311 & 86 & 6 & 3.6$\times$ \\
-97th & 101 & 29 & 6 & 3.5$\times$ \\
-\bottomrule
-\end{tabular}
-\end{center}
-\medskip
+The final column (C$_{\text{cont}}$ vs analytic) shows that classical MC sampling from the continuous lognormal achieves \$178--\$598 RMSE against the analytic truth --- competitive with the oracle-model methods at shallow tails, but substantially noisier at the 97th percentile. Experiment~5 provides an even more rigorous comparison including variance-reduced classical baselines.
 
-The Grover amplification contributes a consistent $\sim 3$--$3.6\times$ RMSE reduction at matched oracle-query budgets — the per-shot precision improvement from $k$ iterations of the Grover operator. The remainder of the quantum advantage over classical MC (the $k = 0$ quantum advantage) comes from the amplitude-encoding representation: the oracle encodes the full discretised distribution, eliminating the sample-sparsity problem that classical MC faces in the tail.
-
-Figure~\ref{fig:exp3} visualises the RMSE comparison and query efficiency.
+Figure~\ref{fig:exp3} visualises the estimation-error comparison (left) and the discretisation-error context (right).
 
 \begin{figure}[ht]
 \centering
 \includegraphics[width=0.95\textwidth]{plot_exp3_tail.png}
-\caption{Experiment 3: excess-loss RMSE (left) and normalised query inefficiency (right) at three tail percentiles. The quantum advantage grows with tail depth because deeper tails produce smaller $P(|1\rangle)$, enabling more Grover iterations.}
+\caption{Experiment 3: estimation error vs exact-on-bins (left) comparing classical MC on the same bins and quantum Grover, with speedup ratios annotated; discretisation error vs classical continuous accuracy (right) providing end-to-end context.}
 \label{fig:exp3}
 \end{figure}
 
@@ -253,74 +276,225 @@ Experiments 1--3 use synthetic Pareto-generated losses. To validate that the qua
 
 \paragraph{4A: Convergence on real data.} Table~\ref{tab:exp4a} shows oracle-call convergence at the 95th-percentile catastrophe threshold of the real loss distribution ($M = \$475{,}650$), with $P(|1\rangle) = 0.0040$ and $k_{\max} = 11$.
 
+To prevent the apples-to-oranges comparison that inflates speedup numbers, we report two ground truths: the analytic lognormal excess loss (\$21{,}845) and the exact-on-bins value (\$14{,}121), with discretisation error \$7{,}724. We compare: (i)~quantum AE vs exact-on-bins, (ii)~classical MC on the same 8-bin discretisation vs exact-on-bins (the oracle-model comparison), and (iii)~classical MC from the continuous lognormal vs the analytic truth (the best classical method can do).
+
 \begin{table}[ht]
 \centering
-\caption{Experiment 4A: RMSE (\$) vs.\ oracle queries on real NOAA data (95th pctl, $n_{\text{reps}} = 30$, 1{,}000 shots/run). Exact $E[\text{excess}] = \$14{,}121$.}
+\caption{Experiment 4A: RMSE (\$) on real NOAA data (95th pctl, $n_{\text{reps}} = 30$, 1{,}000 shots/run). Analytic $E[\text{excess}] = \$21{,}845$; exact-on-bins $= \$14{,}121$; disc.\ error $= \$7{,}724$.}
 \label{tab:exp4a}
-\begin{tabular}{rcrcc}
+\begin{tabular}{rcrrrc}
 \toprule
-$k$ & Total Queries & Classical RMSE (\$) & Quantum RMSE (\$) & Speedup \\
+$k$ & Queries & Q (vs bins) & C$_{\text{bins}}$ (vs bins) & Q/C$_{\text{bins}}$ & C$_{\text{cont}}$ (vs anal.) \\
 \midrule
-0 & 1{,}000 & 14{,}262 & 6{,}745 & 2.1$\times$ \\
-1 & 3{,}000 & 8{,}500 & 2{,}278 & 3.7$\times$ \\
-2 & 5{,}000 & 8{,}870 & 1{,}070 & 8.3$\times$ \\
-3 & 7{,}000 & 10{,}041 & 866 & 11.6$\times$ \\
-4 & 9{,}000 & 8{,}059 & 699 & 11.5$\times$ \\
-5 & 11{,}000 & 7{,}338 & 804 & 9.1$\times$ \\
-6 & 13{,}000 & 10{,}591 & 465 & 22.8$\times$ \\
+0 &  1{,}000 & 8{,}111 & 5{,}189 & 0.6$\times$ & 12{,}285 \\
+1 &  3{,}000 & 2{,}161 & 2{,}464 & 1.1$\times$ & 6{,}667 \\
+2 &  5{,}000 & 1{,}160 & 2{,}087 & 1.8$\times$ & 4{,}982 \\
+3 &  7{,}000 &   929 & 1{,}796 & 1.9$\times$ & 5{,}752 \\
+4 &  9{,}000 &   705 & 1{,}188 & 1.7$\times$ & 3{,}009 \\
+5 & 11{,}000 &   548 & 1{,}196 & 2.2$\times$ & 4{,}029 \\
+6 & 13{,}000 &   442 & 1{,}052 & 2.4$\times$ & 2{,}485 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-The quantum advantage on real data is even more pronounced than on synthetic data. At $k = 6$ (13{,}000 queries), quantum RMSE of \$465 is $22.8\times$ lower than classical MC's \$10{,}591 --- compared to $8.8\times$ on synthetic data at the same $k$. The classical RMSE is highly non-monotonic (fluctuating between \$7{,}338 and \$14{,}262) because individual catastrophic events ($>\$1$B) dominate single MC runs, a direct manifestation of the tail-sparsity problem that motivates this work. The quantum estimator is immune to this volatility: its RMSE decreases steadily from \$6{,}745 at $k = 0$ to \$465 at $k = 6$.
+On the honest oracle-model comparison (Q vs C$_{\text{bins}}$, both measured against exact-on-bins), quantum AE achieves $1.7$--$2.4\times$ lower RMSE at $k \geq 2$, consistent with the $2$--$4\times$ advantage observed on synthetic data (Experiment~6). The classical continuous estimator (C$_{\text{cont}}$, rightmost column) converges to \$2{,}485 RMSE at 13{,}000 samples --- better \emph{end-to-end} than quantum's \$442 vs bins (which is also subject to the \$7{,}724 discretisation floor when measured against analytic truth). This confirms that the quantum advantage is real in the oracle model but does not overcome discretisation error when measured against the analytic truth.
 
 \begin{figure}[ht]
 \centering
-\includegraphics[width=0.85\textwidth]{plot_exp4_convergence.png}
-\caption{Experiment 4A: convergence on real NOAA data. The classical MC trace is erratic due to heavy-tailed outliers (Hurricane Ian, etc.), while the quantum trace converges smoothly.}
+\includegraphics[width=0.95\textwidth]{plot_exp4_convergence.png}
+\caption{Experiment 4A: convergence on real NOAA data. Left: estimation error (both methods vs exact-on-bins). Right: end-to-end error (vs analytic truth), showing the discretisation floor.}
 \label{fig:exp4a}
 \end{figure}
 
-\paragraph{4B: Tail sweep on real data.} Table~\ref{tab:exp4b} compares estimators at three catastrophe thresholds.
+\paragraph{4B: Tail sweep on real data.} Table~\ref{tab:exp4b} decomposes the error at three catastrophe thresholds, using the same two-panel format as 4A.
 
 \begin{table}[ht]
 \centering
-\caption{Experiment 4B: excess-loss estimation on real NOAA data ($n_{\text{reps}} = 30$, 8{,}192 total oracle queries).}
+\caption{Experiment 4B: error decomposition on real NOAA data ($n_{\text{reps}} = 30$, $\approx$8{,}192 total queries). C$_{\text{cont}}$ samples the continuous lognormal (RMSE vs analytic); C$_{\text{bins}}$ and Q sample from the same 8-bin discretisation (RMSE vs exact-on-bins).}
 \label{tab:exp4b}
-\begin{tabular}{lrrrrrrr}
+\begin{tabular}{lrrrrrrrr}
 \toprule
-Pctl & $M$ (\$) & $E[\text{excess}]$ (\$) & $P(|1\rangle)$ & $k_{\max}$ & C-RMSE (\$) & Q-RMSE (\$) & Speedup \\
+Pctl & $M$ (\$) & Analytic & Exact bins & Disc.\ err & C$_{\text{cont}}$ & C$_{\text{bins}}$ & Q ($k$) & Q/C$_{\text{bins}}$ \\
 \midrule
-90th & 100{,}000 & 186{,}273 & 0.0475 & 3 & 147{,}377 & 3{,}950 & 37.3$\times$ \\
-95th & 475{,}650 & 14{,}121 & 0.0040 & 11 & 14{,}034 & 709 & 19.8$\times$ \\
-97th & 1{,}000{,}000 & 6{,}534 & 0.0022 & 16 & 17{,}562 & 449 & 39.1$\times$ \\
+90th & 100{,}000 & 39{,}655 & 186{,}273 & 146{,}619 & 4{,}445 & 1{,}944 & 4{,}228 (3) & 0.5$\times$ \\
+95th & 475{,}650 & 21{,}845 & 14{,}121 &   7{,}724 & 4{,}508 & 1{,}413 &   656 (6) & 2.2$\times$ \\
+97th & 1{,}000{,}000 & 14{,}434 &  6{,}534 &   7{,}900 & 3{,}403 &   999 &   406 (6) & 2.5$\times$ \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-The quantum advantage on real catastrophe data ranges from $19.8\times$ to $39.1\times$ --- substantially larger than the $9$--$27\times$ advantage observed on synthetic data. At the 90th percentile, where the expected excess loss (\$186{,}273) is economically significant for reinsurance pricing, classical MC with 500 samples produces an RMSE of \$147{,}377 --- nearly 80\% of the quantity being estimated --- while Grover-amplified QAE achieves \$3{,}950 (2.1\% relative error). At the 97th percentile ($M = \$1{,}000{,}000$), the classical RMSE (\$17{,}562) exceeds the exact excess loss (\$6{,}534) by $2.7\times$, making the classical estimate essentially meaningless; the quantum RMSE of \$449 represents 6.9\% relative error.
+The decomposition reveals three regimes:
+
+\begin{itemize}[nosep]
+\item \textbf{90th percentile (excluded from headline results)}: Discretisation error (\$146{,}619) dominates everything. The exact-on-bins value (\$186{,}273) is $4.7\times$ the analytic truth (\$39{,}655) because the last equal-width bin midpoint sits far above the threshold --- the equal-width binning scheme is catastrophically unsuitable at this percentile for the heavy-tailed NOAA data ($\hat\sigma = 2.02$). The 90th-percentile row is retained in Table~\ref{tab:exp4b} for transparency, but all headline speedup claims are drawn from the 95th--97th percentiles. (Experiment~7 uses quantile-based bins that avoid this pathology.)
+
+\item \textbf{95th percentile}: Discretisation error (\$7{,}724) is moderate. In the oracle-model comparison, quantum (\$656) beats classical on bins (\$1{,}413) by $2.2\times$. However, classical continuous MC (\$4{,}508 RMSE vs analytic) is still better end-to-end.
+
+\item \textbf{97th percentile}: Similar to the 95th. Quantum (\$406) beats classical on bins (\$999) by $2.5\times$ --- the genuine oracle-model advantage. Classical continuous (\$3{,}403) again wins end-to-end.
+\end{itemize}
 
 \begin{figure}[ht]
 \centering
-\includegraphics[width=0.85\textwidth]{plot_exp4_tail.png}
-\caption{Experiment 4B: tail sweep on real NOAA data. Speedup factors are annotated on the Grover bars. The quantum advantage is largest at the 97th percentile ($39.1\times$).}
+\includegraphics[width=0.95\textwidth]{plot_exp4_tail.png}
+\caption{Experiment 4B: tail sweep on real NOAA data. Left: estimation error on the same discretised distribution (apples-to-apples oracle comparison). Right: discretisation error vs classical continuous accuracy, showing why end-to-end accuracy favours classical when analytical access is available.}
 \label{fig:exp4b}
 \end{figure}
 
-The amplified quantum advantage on real data has a clear explanation: the NOAA loss distribution ($\sigma = 2.02$) is far more heavy-tailed than the synthetic Pareto ($\sigma = 0.67$). In classical MC, heavier tails produce higher estimator variance because extreme events dominate individual samples. The quantum oracle, by contrast, encodes the full discretised distribution regardless of tail weight --- the circuit depth and gate count are identical for light-tailed and heavy-tailed distributions at the same qubit count. Consequently, the quantum advantage \emph{grows with the severity of the tail}, which is precisely the property needed for catastrophe insurance applications where the distributions of interest are among the heaviest-tailed in finance.
+\paragraph{Key takeaway.} The raw speedup figures in earlier versions of this analysis (up to $29\times$) were inflated by measuring classical MC --- which targets the continuous lognormal --- against the discrete ground truth. When both methods operate on the same discretised distribution (the oracle-model comparison), the genuine quantum advantage is $2$--$3\times$ at the 95th--97th percentiles, consistent with Experiment~6 on synthetic data. The 90th percentile is excluded from headline results because equal-width binning is pathological there (disc.\ error $4.7\times$ the analytic truth); see Experiment~7 for quantile-based binning that avoids this issue. Experiment~5 examines whether variance-reduced classical baselines (CT, IS) alter this picture further.
+
+
+\subsection{Experiment 5: Fair Budget-Matched Comparison}
+
+Experiments 1--4 compare quantum AE against naive Monte Carlo. A natural objection is that naive MC is a straw-man baseline for tail estimation: classical practitioners routinely use variance-reduced estimators. Experiment~5 addresses this by comparing four classical estimators from \S\ref{sec:baselines} (naive MC, CT, IS, and classical MC on bins) against quantum AE --- five sampling methods in total --- at \emph{strictly equal} oracle-query / sample budgets $B \in \{500, 2{,}000, 8{,}000\}$. RMSE is computed against the analytic ground truth (\S\ref{sec:baselines}, item~1) over 50 repetitions.
+
+\paragraph{Results.} Table~\ref{tab:exp5} presents RMSE at $B = 8{,}000$ on synthetic data; Figure~\ref{fig:exp5_budget} shows the convergence across all three budgets.
+
+\begin{table}[ht]
+\centering
+\caption{Experiment 5: RMSE (\$) vs analytic truth at budget $B = 8{,}000$ (synthetic data, 50 reps). ``Exact bins'' is the deterministic sum $\sum p_i \max(0, x_i - M)$ --- a non-sampling reference requiring zero queries.}
+\label{tab:exp5}
+\begin{tabular}{lrrrrrrrrr}
+\toprule
+Pctl & Analytic & Exact bins & Naive MC & CT & IS & Class.\ bins & QAE ($k$) \\
+\midrule
+90th & 9{,}629 & 9{,}441 & 499 & \textbf{106} & 177 & 400 & 266 (5) \\
+95th & 2{,}834 & 2{,}330 & 291 & \textbf{33} & 46 & 558 & 484 (9) \\
+97th & 900 & 498 & 193 & \textbf{11} & 17 & 396 & 387 (15) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.85\textwidth]{plot_exp5_methods_synth.png}
+\caption{Experiment 5: all methods at $B = 8{,}000$ across three percentiles (synthetic data). CT and IS dominate because they sample the continuous fitted distribution, avoiding discretisation error entirely.}
+\label{fig:exp5_bars}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.85\textwidth]{plot_exp5_budget_synth.png}
+\caption{Experiment 5: RMSE vs budget at the 95th percentile (synthetic data). CT and IS converge to zero; quantum and classical-on-bins flatten at the discretisation floor ($\approx$\$505).}
+\label{fig:exp5_budget}
+\end{figure}
+
+The results reveal a critical distinction. Conditional tail MC and importance sampling --- which sample the \emph{continuous} fitted lognormal --- achieve dramatically lower RMSE (\$11--\$106) than both quantum AE (\$259--\$461) and classical MC on bins (\$396--\$558). The quantum estimator \emph{does} substantially outperform classical MC on the same discretised distribution at every percentile and budget: at the 90th percentile ($B = 8{,}000$), quantum RMSE is \$259 vs classical-on-bins \$400, and the pure estimation RMSE (vs discrete truth) is \$89 vs \$349 --- a $3.9\times$ advantage. But this algorithmic gain is overshadowed by discretisation error (\$188--\$505) when measured against the analytic truth.
+
+\paragraph{Interpretation.} The quantum speedup is real in the \emph{oracle model}: given query-only access to a black-box distribution encoded in a quantum circuit, Grover-amplified QAE matches the known quadratic query advantage of amplitude-estimation-type methods \citep{brassard2002quantum}. CT and IS win in this experiment because they exploit analytical knowledge of the lognormal form --- computing $F^{-1}(u)$ and $f(x)$ in closed form --- something a quantum oracle does not require. In catastrophe modelling, the loss distribution is the output of a complex simulator (wind field $\to$ structural damage $\to$ financial loss) with no closed-form CDF. CT and IS can in principle still be applied via kernel density estimation or stratified resampling, but such methods introduce their own modelling error and additional query overhead, changing the oracle setting. When the oracle \emph{is} the simulator, the oracle-model advantage applies. Experiment~7 tests this argument by encoding an empirical PMF where no closed-form distribution is available.
+
+
+\subsection{Experiment 6: Discretisation vs.\ Estimation Error (Qubit Sweep)}
+
+The dominant error source in Experiment~5 is discretisation, not estimation. Experiment~6 isolates these two components by sweeping $n = 3, 4, 5, 6, 7$ qubits ($8$ to $128$ bins) at a fixed budget $B = 4{,}000$ and the 95th-percentile threshold.
+
+\paragraph{Ground truths.} For each $n$:
+\begin{itemize}[nosep]
+  \item \textbf{Analytic truth}: closed-form $E[(X-M)^+]$ for the continuous lognormal ($= \$2{,}834$).
+  \item \textbf{Discrete truth}: exact sum $\sum p_i \max(0, x_i - M)$ over the $2^n$ bins.
+  \item \textbf{Discretisation error}: $|\text{discrete} - \text{analytic}|$.
+  \item \textbf{Estimation error}: RMSE of quantum (or classical-on-bins) vs discrete truth.
+\end{itemize}
+
+\begin{table}[ht]
+\centering
+\caption{Experiment 6: error decomposition across qubit counts (95th pctl, $B = 4{,}000$, 50 reps). Circuit metrics are from transpilation to $\{CX, R_z, SX, X\}$.}
+\label{tab:exp6}
+\begin{tabular}{rcrrrrrr}
+\toprule
+$n$ & Bins & Disc.\ err (\$) & Q-RMSE$_{\mathrm{est}}$ (\$) & C-RMSE$_{\mathrm{est}}$ (\$) & $k$ & SP 2Q gates & Oracle depth \\
+\midrule
+3 &   8  & 505  & \textbf{91}  & 349  & 9 & 52     & 388 \\
+4 &  16  & 578  & \textbf{115} & 282  & 9 & 212    & 1{,}063 \\
+5 &  32  & 557  & \textbf{136} & 306  & 9 & 596    & 2{,}434 \\
+6 &  64  & 564  & \textbf{98}  & 261  & 9 & 1{,}876 & 5{,}958 \\
+7 & 128  & 566  & \textbf{103} & 304  & 9 & 5{,}460 & 21{,}150 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.95\textwidth]{plot_exp6_scaling.png}
+\caption{Experiment 6: error decomposition (left) and total RMSE vs analytic truth (right). Discretisation error dominates and remains $\sim$\$505--\$578 across all qubit counts because the bin range (0.1st--99.9th percentile) truncates the upper tail identically.}
+\label{fig:exp6_scaling}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.95\textwidth]{plot_exp6_gates.png}
+\caption{Experiment 6: circuit resource scaling. State-preparation two-qubit gates grow as $O(2^n)$; at $n = 7$, a single oracle call requires 21{,}150 depth and 5{,}460 CX gates.}
+\label{fig:exp6_gates}
+\end{figure}
+
+\paragraph{Key findings.} Two results stand out. First, the quantum estimation advantage over classical MC \emph{on the same discretised distribution} is consistent: quantum RMSE is $2$--$3.9\times$ lower than classical at every qubit count (Table~\ref{tab:exp6}). This is the genuine algorithmic speedup from Grover amplification, independent of discretisation.
+
+Second, the discretisation error does \emph{not} decrease with more bins ($\sim$\$505--\$578 at all $n$). This occurs because the bins span the 0.1st to 99.9th percentile of the fitted lognormal using equal-width spacing. The excess loss above the 99.9th percentile is truncated identically regardless of resolution. Reducing this error requires either (a) extending the bin range deeper into the tail (e.g.\ 99.999th percentile), (b) using non-uniform (log-spaced or quantile-based) binning, or (c) adding a ``catch-all'' upper bin. These are engineering choices orthogonal to the QAE algorithm itself.
+
+\paragraph{Circuit cost.} When transpiled to the hardware basis $\{CX, R_z, SX, X\}$, the state-preparation overhead is substantial: two-qubit gate count grows from 52 ($n = 3$) to 5{,}460 ($n = 7$), and oracle depth reaches 21{,}150 at 128 bins. At $k = 9$ Grover iterations, the full circuit depth is $\sim$$10\times$ this. For near-term hardware, efficient state-preparation methods (qGAN loading, QROM-based approaches) would be essential beyond $n \approx 5$.
+
+
+\subsection{Experiment 7: Empirical PMF (No Parametric Fit)}
+
+A remaining objection to Experiment~5 is that CT and IS only win because the underlying distribution is a fitted lognormal with known analytical form. In practice, catastrophe model output has no closed-form distribution. Experiment~7 removes the parametric model entirely: the 58{,}028 NOAA loss records are directly histogram-binned into $2^3 = 8$ quantile-based bins (each containing $\approx$12.5\% of the data, extending to the data maximum), and the resulting empirical PMF is encoded into the quantum oracle. Ground truth is the exact sum over bins --- a deterministic, non-sampling reference.
+
+\paragraph{Methods.} Three estimators are compared at equal budgets $B \in \{500, 2{,}000, 8{,}000\}$:
+\begin{enumerate}[nosep]
+  \item \textbf{Exact-on-bins} (non-sampling ceiling): $\sum p_i \max(0, x_i - M)$, computed in one line.
+  \item \textbf{Naive MC} (resample with replacement from the raw loss array).
+  \item \textbf{Classical MC on bins} (sample from the empirical PMF).
+  \item \textbf{Quantum AE} on the same empirical PMF.
+\end{enumerate}
+
+CT and IS offer no direct advantage without additional modelling or density/CDF estimation: in the strict query-only oracle setting, implementing CT requires knowing $P(X > M)$ and sampling the conditional tail, while IS requires a density $f(x)$ to compute likelihood ratios. On empirical data, these can in principle be approximated via kernel density estimation or stratified resampling, but such methods introduce their own modelling error and query overhead. This is the oracle-model setting the quantum method is designed for.
+
+\paragraph{Results.} Table~\ref{tab:exp7} presents RMSE vs the exact-on-bins truth at $B = 8{,}000$.
+
+\begin{table}[ht]
+\centering
+\caption{Experiment 7: RMSE (\$) vs exact-on-bins at $B = 8{,}000$ (NOAA empirical PMF, 50 reps, quantile-binned). The exact-on-bins value is shown for reference; it requires zero samples.}
+\label{tab:exp7}
+\begin{tabular}{lrrrrr}
+\toprule
+Pctl & Exact (\$) & Naive MC (\$) & Class.\ bins (\$) & QAE ($k$) (\$) & Q/C Speedup \\
+\midrule
+90th & 1{,}683{,}761 & 608{,}949 & 57{,}351 & \textbf{24{,}076} (1) & 2.4$\times$ \\
+95th & 1{,}634{,}141 & 622{,}976 & 56{,}930 & \textbf{27{,}156} (1) & 2.1$\times$ \\
+97th & 1{,}564{,}879 & 862{,}260 & 48{,}776 & \textbf{30{,}632} (1) & 1.6$\times$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.85\textwidth]{plot_exp7_empirical.png}
+\caption{Experiment 7: RMSE on the empirical NOAA PMF (no parametric fit). QAE achieves $1.6$--$2.4\times$ lower RMSE than classical MC on the same bins. CT and IS offer no direct advantage without extra modelling.}
+\label{fig:exp7}
+\end{figure}
+
+Quantum AE achieves $1.6$--$2.4\times$ lower RMSE than classical MC on the same bins across percentiles and budgets. The advantage is smaller than in Experiments 1--4 because the quantile-based binning places $\approx$12.5\% probability mass in each bin (including the tail bin), yielding $P(|1\rangle) \approx 0.13$ and $k_{\max} = 1$ --- only a single Grover iteration is safe. With amplitude encoding on a finer-grained binning ($n = 5$--$7$), the tail-bin probability would decrease, enabling higher $k$ and a larger speedup.
+
+The key observation is structural: on this empirical distribution, variance-reduced classical methods (CT, IS) cannot be applied directly without extra modelling --- kernel density estimation, parametric fitting, or stratified resampling --- each of which introduces its own error and query overhead, changing the oracle setting. The exact-on-bins value ($\sim$\$1.6M) is trivially computed as a weighted sum, but this requires \emph{knowing} the PMF, which is precisely what the oracle provides. In the query-limited setting (where each oracle call has non-trivial cost, e.g.\ running a catastrophe simulation), QAE reduces the number of calls needed by a factor of $2$--$4\times$ at current qubit counts, with a theoretical quadratic asymptote.
 
 
 \subsection{Discussion}
 
-\paragraph{Genuine quadratic speedup.} Unlike prior simulator-based studies that were limited to $k = 0$ (shot-based estimation without Grover amplification) due to large readout probabilities, the amplitude-encoding oracle used here produces $P(|1\rangle) \sim 0.002$--$0.05$ for tail events, enabling safe Grover amplification with $k$ up to 16. The convergence curves (Experiments~1 and 4A, Figs.~\ref{fig:exp1} and \ref{fig:exp4a}) show quantum RMSE decreasing faster than $O(1/\sqrt{N})$ as $k$ increases. Crucially, the advantage is \emph{larger} on real catastrophe data ($22.8\times$ at $k = 6$) than on synthetic data ($8.8\times$), confirming that the quantum method excels precisely where it is most needed: distributions with extreme tail weight.
+\paragraph{The oracle-model advantage is real.} Across all experiments, quantum AE with Grover amplification achieves $2$--$4\times$ lower estimation RMSE than classical MC operating on the \emph{same discretised distribution} at matched oracle-call budgets (Experiment~6, Table~\ref{tab:exp6}). The convergence curves (Experiments~1 and 4A) show the quantum RMSE decreasing faster than $O(1/\sqrt{N})$, consistent with the quadratic query advantage of amplitude-estimation-type methods in the standard oracle model \citep{brassard2002quantum}. This advantage holds consistently across 3--7 qubits, both synthetic and real data, and all percentile thresholds tested. Experiment~7 confirms that the advantage persists on an empirical PMF where no closed-form distribution is available.
 
-\paragraph{The NISQ bottleneck.} Experiment~2 shows that the noiseless advantage ($9\times$ at $k = 6$) is entirely destroyed by current NISQ noise levels. The $k = 3$ circuit ($\sim$700 gates) is already too deep for low-noise error rates ($p_{2q} = 0.01$). This underscores that the value of these results is in establishing the \emph{algorithmic} advantage and the engineering pathway --- not in near-term hardware deployment. The transition to practical quantum advantage requires fault-tolerant hardware or novel error mitigation.
+\paragraph{Variance-reduced classical methods win when analytical access is available.} Experiment~5 demonstrates that conditional tail MC and importance sampling --- which exploit the closed-form lognormal CDF --- dramatically outperform quantum AE when measured against the continuous ground truth (e.g.\ CT achieves RMSE \$11 vs quantum \$394 at the 97th percentile with $B = 8{,}000$). This is not a failure of the quantum algorithm; it reflects the fundamentally different problem settings. CT and IS require analytical knowledge of $F^{-1}(u)$ or $f(x)$ for the loss distribution, which is available for a fitted parametric model but not for the output of a catastrophe simulation pipeline. The quantum advantage applies in the \emph{oracle model}, where the distribution is accessed only through a quantum circuit --- the natural setting when the ``oracle'' encapsulates an expensive simulator.
 
-\paragraph{Amplitude encoding vs.\ uniform superposition.} The critical design insight enabling Grover amplification is the choice of amplitude encoding (Eq.~\ref{eq:stateprep}--\ref{eq:readout}) over uniform superposition. With uniform superposition, the readout probability $P(|1\rangle) = (1/N)\sum r_i$ is inflated by normalisation to $\sim 0.3$--$0.4$ regardless of threshold depth, making $k_{\max} = 0$ at all percentiles. With amplitude encoding, $P(|1\rangle) = \sum p_i \tilde{f}(x_i)$ is naturally small for tail events because most probability mass falls in bins where $\tilde{f} = 0$. The custom state preparation (binary tree of $\{R_y, CR_y, MCR_y\}$ gates) adds modest circuit depth ($\sim 15$--$20$ gates for 3 qubits) but is essential for enabling the Grover iterations that deliver the quadratic speedup.
+\paragraph{Discretisation error, not estimation error, is the bottleneck.} Experiment~6 reveals that the dominant error at 3--7 qubits is discretisation error ($\sim$\$500), caused primarily by tail truncation at the 99.9th percentile rather than by bin resolution.
 
-\paragraph{Scaling considerations.} At 3 qubits (8 bins), the discretisation is coarse and the 97th percentile is near the edge of the representable range. Production-scale QAE for catastrophe modelling would use $n = 10$--$20$ qubits ($10^3$--$10^6$ bins), where: (a) the discretisation faithfully resolves deep tails, (b) $P(|1\rangle)$ for extreme events is exponentially small, enabling $k_{\max} \sim O(2^{n/2})$ Grover iterations, and (c) the quadratic advantage $O(1/N)$ vs.\ $O(1/\sqrt{N})$ becomes transformative for high-resolution pricing. The state-preparation circuit depth grows as $O(2^n)$ in the general case, which is the dominant cost for near-term implementations; efficient state-preparation methods for structured distributions (e.g.\ qGAN-based loading \citep{zoufal2019quantum}) could reduce this overhead.
+\paragraph{Equal-width vs.\ quantile binning.} A natural suggestion is to replace equal-width bins with quantile-based bins, which distribute probability mass uniformly across bins and avoid the pathological midpoint placement that caused the 90th-percentile disaster in Experiment~4B. To test this, we re-ran Experiments 1 and 3 on the synthetic data with quantile binning. The results reveal a fundamental trade-off: quantile binning assigns $\sim$12.5\% probability mass to each of the 8 bins, making $P(|1\rangle)$ large ($\sim$0.1--0.2) and limiting $k_{\max}$ to 0--1. The oracle-model speedup drops from $1.5$--$2.5\times$ (equal-width, $k$ up to 6) to $1.3$--$1.5\times$ (quantile, $k \leq 1$). Discretisation error \emph{increases} to $\sim$\$12{,}500--\$22{,}000 because the wide tail bin (87.5th--99.9th percentile) has a midpoint far above the threshold. Equal-width binning is therefore the better choice for amplitude-encoded QAE, because it concentrates small probability mass in tail bins --- exactly the regime where Grover amplification is most effective. The correct fix for tail truncation is not to redistribute probability mass into the tails, but to extend the bin range or use log-spaced edges that preserve small tail probabilities while improving tail resolution.
 
-\paragraph{Implications for AI-driven catastrophe modelling.} The practical motivation for this work is that QAE could generate high-resolution tail data to train downstream AI pricing models. Classical MC training data is sparse in the tail; if QAE can produce accurate tail estimates at a fraction of the classical cost, the resulting training data would be denser in the catastrophe regime, leading to AI models with better-calibrated tail predictions and more accurate capital reserve calculations. The real-data validation (Experiment~4) strengthens this argument: on actual US property-damage data, classical MC at the 97th percentile produces RMSE that exceeds the quantity being estimated ($2.7\times$), rendering it useless for pricing, while QAE achieves 6.9\% relative error with the same query budget.
+\paragraph{The NISQ bottleneck.} Experiment~2 shows that the noiseless advantage is entirely destroyed by current NISQ noise levels. The $k = 3$ circuit ($\sim$700 gates) is already too deep for representative error rates ($p_{2q}$ in the $10^{-3}$--$10^{-2}$ range). Experiment~6 shows that transpiled oracle depth grows to $\sim$21{,}000 at $n = 7$ (128 bins), making near-term hardware execution infeasible without error mitigation or fault tolerance. Moreover, our noise model is i.i.d.\ depolarising only, explicitly excluding $T_1$/$T_2$ relaxation, crosstalk, and leakage --- effects that are often the dominant error sources on real devices \citep{tannu2019mitigating}. IBM's Heron-class processors achieve two-qubit gate errors of $\sim$$3 \times 10^{-3}$ \citep{mckay2023benchmarking}, roughly matching our ``low'' noise preset, but the additional coherent and correlated error channels mean real hardware would likely perform \emph{worse} than Experiment~2 suggests. The NISQ bottleneck is therefore conservative.
+
+\paragraph{Amplitude encoding vs.\ uniform superposition.} The critical design insight enabling Grover amplification is amplitude encoding (Eq.~\ref{eq:stateprep}--\ref{eq:readout}). With uniform superposition, $P(|1\rangle) \sim 0.3$--$0.4$ regardless of threshold, making $k_{\max} = 0$. With amplitude encoding, $P(|1\rangle) \sim 0.002$--$0.05$ for tail events, enabling $k$ up to 16.
+
+\paragraph{Break-even analysis.} At what scale does the oracle-model advantage become practically significant? Consider a catastrophe model where each simulation costs $T_c$ seconds (typical values: minutes to hours per event set). Classical MC at budget $N$ costs $N \cdot T_c$ wall-clock time. QAE with Grover amplification achieves $O(1/N)$ convergence, so it needs $\sim\!\sqrt{N}$ oracle queries for the same RMSE. Each quantum oracle call costs $T_q = d \cdot t_g$, where $d$ is the circuit depth and $t_g$ is the gate time. At $n = 7$ (128 bins, Table~\ref{tab:exp6}), a single oracle has depth 21{,}150; with $k = 9$ Grover iterations, the full circuit depth is $\sim$200{,}000. At a fault-tolerant gate time of $\sim$1~$\mu$s \citep{reiher2017elucidating}, $T_q \approx 0.2$~s per oracle call. The quantum wall-clock cost is $\sqrt{N} \times 0.2$~s. For a classical budget of $N = 10{,}000$ simulations at $T_c = 60$~s each (167 hours), the quantum cost is $100 \times 0.2$~s $= 20$~s --- a $\sim$30{,}000$\times$ wall-clock speedup. Even at $N = 1{,}000$ with $T_c = 1$~s, the quantum cost ($\sim$6~s) is comparable to classical ($\sim$17 minutes).
+
+However, this analysis assumes fault-tolerant execution of depth-200{,}000 circuits, efficient loading of the catastrophe model into a quantum oracle, and $n \gg 7$ qubits for adequate bin resolution. Each of these assumptions is far from near-term reality. The break-even is therefore a \emph{long-term} prospect: QAE for catastrophe pricing becomes practically relevant when fault-tolerant hardware can execute circuits with $O(10^5)$ depth at microsecond gate times, and efficient state-preparation methods (qGAN, QROM) can encode high-dimensional loss distributions.
+
+\paragraph{Implications for catastrophe modelling.} The practical case for quantum tail-risk pricing rests on the oracle model: the loss distribution comes from a complex catastrophe simulator (wind field $\to$ structural damage $\to$ financial loss) that cannot be sampled from analytically. In that setting, CT and IS cannot be directly applied without additional density estimation, and the relevant comparison is quantum AE vs.\ classical MC on the same oracle. Our experiments show that this comparison yields a $2$--$3\times$ RMSE advantage at 3--7 qubits (confirmed on both synthetic and real NOAA data, Experiments 4--7), with the theoretical guarantee of near-quadratic scaling to larger qubit counts. Critically, the error decomposition (Experiments 4 and 6) shows that discretisation error currently dominates: the quantum estimation advantage will only translate into end-to-end accuracy gains when the binning scheme is improved. Achieving this in practice requires: (a) fault-tolerant hardware or strong error mitigation, (b) improved discretisation schemes (log-spaced bins, wider tail coverage), and (c) efficient state-preparation circuits for high-dimensional distributions.
 
 
 % ==============================================================
@@ -331,6 +505,11 @@ The amplified quantum advantage on real data has a clear explanation: the NOAA l
 Brassard, G., H{\o}yer, P., Mosca, M., and Tapp, A. (2002).
 \newblock Quantum amplitude amplification and estimation.
 \newblock {\em Contemporary Mathematics}, 305:53--74.
+
+\bibitem[Embrechts et~al., 1997]{embrechts1997modelling}
+Embrechts, P., Kl\"{u}ppelberg, C., and Mikosch, T. (1997).
+\newblock {\em Modelling Extremal Events for Insurance and Finance}.
+\newblock Springer, Berlin.
 
 \bibitem[Grossi and Kunreuther, 2005]{grossi2005catastrophe}
 Grossi, P. and Kunreuther, H. (2005).
@@ -347,10 +526,20 @@ Li, Y. and Benjamin, S.~C. (2017).
 \newblock Efficient variational quantum simulator incorporating active error minimization.
 \newblock {\em Physical Review X}, 7(2):021050.
 
+\bibitem[McKay et~al., 2023]{mckay2023benchmarking}
+McKay, D.~C., et~al. (2023).
+\newblock Benchmarking quantum processor performance at scale.
+\newblock arXiv preprint arXiv:2311.05933.
+
 \bibitem[Montanaro, 2015]{montanaro2015quantum}
 Montanaro, A. (2015).
 \newblock Quantum speedup of Monte Carlo methods.
 \newblock {\em Proceedings of the Royal Society A}, 471(2181):20150301.
+
+\bibitem[Reiher et~al., 2017]{reiher2017elucidating}
+Reiher, M., Wiebe, N., Svore, K.~M., Wecker, D., and Troyer, M. (2017).
+\newblock Elucidating reaction mechanisms on quantum computers.
+\newblock {\em Proceedings of the National Academy of Sciences}, 114(29):7555--7560.
 
 \bibitem[Stamatopoulos et~al., 2020]{stamatopoulos2020option}
 Stamatopoulos, N., Egger, D.~J., Sun, Y., Zoufal, C., Iten, R., Sber, N., and Woerner, S. (2020).

@@ -90,16 +90,29 @@ def discretise_distribution(
     n_qubits: int = 3,
     low: Optional[float] = None,
     high: Optional[float] = None,
+    binning: str = "equal_width",
 ) -> Tuple[np.ndarray, np.ndarray]:
-    """Discretise a lognormal into 2^n_qubits bins, return (midpoints, probs)."""
+    """Discretise a lognormal into 2^n_qubits bins, return (midpoints, probs).
+
+    binning: 'equal_width' (default) or 'quantile'.
+    Quantile binning places equal probability mass in each bin, avoiding
+    pathological midpoint placement on heavy-tailed distributions.
+    """
     from scipy.stats import lognorm
     n_bins = 2 ** n_qubits
-    if low is None:
-        low = lognorm.ppf(0.001, shape, loc, scale)
-    if high is None:
-        high = lognorm.ppf(0.999, shape, loc, scale)
 
-    edges = np.linspace(low, high, n_bins + 1)
+    if binning == "quantile":
+        quantiles = np.linspace(0.0, 1.0, n_bins + 1)
+        quantiles[0] = 0.001
+        quantiles[-1] = 0.999
+        edges = lognorm.ppf(quantiles, shape, loc, scale)
+    else:
+        if low is None:
+            low = lognorm.ppf(0.001, shape, loc, scale)
+        if high is None:
+            high = lognorm.ppf(0.999, shape, loc, scale)
+        edges = np.linspace(low, high, n_bins + 1)
+
     probs = np.diff(lognorm.cdf(edges, shape, loc, scale))
     probs = probs / probs.sum()
     midpoints = 0.5 * (edges[:-1] + edges[1:])

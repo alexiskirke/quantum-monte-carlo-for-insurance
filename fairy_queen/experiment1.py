@@ -30,6 +30,7 @@ from fairy_queen.quantum_circuits import (
     grover_boosted_estimate,
     max_safe_k,
 )
+from fairy_queen.experiment5 import analytic_lognormal_excess
 
 K_VALUES = [0, 1, 2, 3, 4, 5, 6]
 QUANTUM_SHOTS = 1000
@@ -48,6 +49,13 @@ def classical_mc_excess_loss(
     samples = stats.lognorm.rvs(shape, loc, scale, size=n_samples,
                                 random_state=rng.integers(2**31))
     return float(np.mean(np.maximum(0.0, samples - threshold)))
+
+
+def _classical_mc_on_bins(midpoints: np.ndarray, probs: np.ndarray,
+                          threshold: float, n_samples: int,
+                          rng: np.random.Generator) -> float:
+    indices = rng.choice(len(midpoints), size=n_samples, p=probs)
+    return float(np.mean(np.maximum(0.0, midpoints[indices] - threshold)))
 
 
 def run_experiment1(
@@ -74,11 +82,13 @@ def run_experiment1(
     shape, loc, scale = dist_params
     midpoints, probs = discretise_distribution(shape, loc, scale, n_qubits)
 
-    # 95th-percentile threshold — gives small P(|1⟩) for safe amplification
     threshold = float(np.percentile(losses, 95))
-    exact_excess = _exact_excess_loss(midpoints, probs, threshold)
+    exact_bins = _exact_excess_loss(midpoints, probs, threshold)
+    analytic = analytic_lognormal_excess(shape, loc, scale, threshold)
+    disc_err = abs(exact_bins - analytic)
     log.info("  Threshold (95th pctl) = $%.0f", threshold)
-    log.info("  Exact discretised E[excess] = $%.2f", exact_excess)
+    log.info("  analytic=$%.2f  exact_bins=$%.2f  disc_err=$%.2f",
+             analytic, exact_bins, disc_err)
 
     A_circuit, obj_qubit, rescale = build_oracle_A(
         probs, midpoints, catastrophe_threshold=threshold
@@ -89,51 +99,74 @@ def run_experiment1(
     log.info("  P(|1⟩) = %.6f, θ = %.4f rad, k_max = %d",
              exact_prob, np.arcsin(np.sqrt(exact_prob)), k_safe)
 
-    # Trim k_values to safe range
     k_values = [k for k in k_values if k <= k_safe]
 
     rng = np.random.default_rng(seed)
     quantum_results = []
     classical_results = []
+    classical_bins_results = []
 
     for k in k_values:
         total_queries = quantum_shots * (2 * k + 1)
 
-        # Quantum: fixed shots, k Grover iterations
-        q_errors = []
+        # Quantum AE
+        q_errs_bins, q_errs_anal = [], []
         for _ in range(n_reps):
             est_prob, info = grover_boosted_estimate(
                 A_circuit, obj_qubit, k_iters=k, shots=quantum_shots
             )
             est_loss = est_prob * rescale
-            q_errors.append((est_loss - exact_excess) ** 2)
-        q_rmse = float(np.sqrt(np.mean(q_errors)))
+            q_errs_bins.append((est_loss - exact_bins) ** 2)
+            q_errs_anal.append((est_loss - analytic) ** 2)
+        q_rmse_bins = float(np.sqrt(np.mean(q_errs_bins)))
+        q_rmse_anal = float(np.sqrt(np.mean(q_errs_anal)))
 
         quantum_results.append({
             "k": k,
             "total_oracle_queries": total_queries,
-            "rmse": q_rmse,
+            "rmse": q_rmse_bins,
+            "rmse_vs_bins": q_rmse_bins,
+            "rmse_vs_analytic": q_rmse_anal,
             "shots": quantum_shots,
             "circuit_depth": info.get("circuit_depth", 0),
             "gate_count": info.get("gate_count", 0),
         })
-        log.info("  Quantum k=%d  queries=%5d  RMSE=$%.2f", k, total_queries, q_rmse)
 
-        # Classical: same total budget as oracle queries
-        c_errors = []
+        # Classical MC (continuous lognormal)
+        c_errs_bins, c_errs_anal = [], []
         for _ in range(n_reps):
             est = classical_mc_excess_loss(
                 shape, loc, scale, threshold, total_queries, rng
             )
-            c_errors.append((est - exact_excess) ** 2)
-        c_rmse = float(np.sqrt(np.mean(c_errors)))
+            c_errs_bins.append((est - exact_bins) ** 2)
+            c_errs_anal.append((est - analytic) ** 2)
+        c_rmse_anal = float(np.sqrt(np.mean(c_errs_anal)))
 
         classical_results.append({
             "n_samples": total_queries,
             "total_oracle_queries": total_queries,
-            "rmse": c_rmse,
+            "rmse": c_rmse_anal,
+            "rmse_vs_analytic": c_rmse_anal,
         })
-        log.info("  Classical  N=%5d             RMSE=$%.2f", total_queries, c_rmse)
+
+        # Classical MC on same bins
+        cb_errs = []
+        for _ in range(n_reps):
+            est = _classical_mc_on_bins(midpoints, probs, threshold,
+                                        total_queries, rng)
+            cb_errs.append((est - exact_bins) ** 2)
+        cb_rmse = float(np.sqrt(np.mean(cb_errs)))
+
+        classical_bins_results.append({
+            "n_samples": total_queries,
+            "total_oracle_queries": total_queries,
+            "rmse_vs_bins": cb_rmse,
+        })
+
+        log.info("  k=%d  queries=%5d  Q(bins)=$%.2f  C_bins(bins)=$%.2f  "
+                 "C_cont(anal)=$%.2f  Q/C_bins=%.1fx",
+                 k, total_queries, q_rmse_bins, cb_rmse, c_rmse_anal,
+                 cb_rmse / q_rmse_bins if q_rmse_bins > 0 else float('inf'))
 
     runtime = time.time() - t0
     log.info("Experiment 1 completed in %.1f s", runtime)
@@ -141,7 +174,10 @@ def run_experiment1(
     return {
         "quantum_results": quantum_results,
         "classical_results": classical_results,
-        "exact_excess_loss": exact_excess,
+        "classical_bins_results": classical_bins_results,
+        "exact_excess_loss": exact_bins,
+        "analytic_excess_loss": analytic,
+        "disc_error": disc_err,
         "threshold": threshold,
         "readout_prob": exact_prob,
         "k_safe": k_safe,

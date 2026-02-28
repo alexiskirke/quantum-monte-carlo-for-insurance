@@ -125,10 +125,22 @@ def download_and_cache_noaa(
         m = re.search(r"_d(\d{4})_c", u)
         if m:
             downloaded_years.append(int(m.group(1)))
+    from datetime import datetime
+    manifest = {
+        "source": "noaa_storm_events",
+        "base_url": NOAA_BASE_URL,
+        "files": [u.split("/")[-1] for u in urls],
+        "years": sorted(set(downloaded_years)),
+        "n_records": len(losses),
+        "min_loss": min_loss,
+        "retrieval_date": datetime.now().strftime("%Y-%m-%d"),
+    }
     with open(meta_file, "w") as f:
-        json.dump({"source": "noaa_storm_events",
-                    "years": sorted(set(downloaded_years)),
-                    "n_records": len(losses), "min_loss": min_loss}, f)
+        json.dump(manifest, f, indent=2)
+    manifest_path = CACHE_DIR / "noaa_manifest.json"
+    with open(manifest_path, "w") as f:
+        json.dump(manifest, f, indent=2)
+    log.info("Wrote NOAA manifest to %s", manifest_path)
     return losses
 
 

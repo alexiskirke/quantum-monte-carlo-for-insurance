@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) (preloaded format=pdflatex 2025.11.25)  27 FEB 2026 13:03
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) (preloaded format=pdflatex 2025.11.25)  28 FEB 2026 10:35
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -486,10 +486,7 @@ LaTeX Font Info:    External font `lmex10' loaded for size
 (Font)              <5> on input line 30.
 LaTeX Font Info:    External font `lmex10' loaded for size
 (Font)              <10.95> on input line 43.
- [1
-
-{/Users/alexiskirke/Library/TinyTeX/texmf-var/fonts/map/pdftex/updmap/pdftex.map}{/Users/alexiskirke/Library/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-ec.enc}{/Users/alexiskirke/Library/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-mathit.enc}{/Users/alexiskirke/Library/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-rm.enc}{/Users/alexiskirke/Library/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-mathsy.enc}]
-LaTeX Font Info:    Trying to load font information for T1+lmtt on input line 57.
+LaTeX Font Info:    Trying to load font information for T1+lmtt on input line 43.
  (/Users/alexiskirke/Library/TinyTeX/texmf-dist/tex/latex/lm/t1lmtt.fd
 File: t1lmtt.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
@@ -497,64 +494,94 @@ Package microtype Info: Loading generic protrusion settings for font family
 (microtype)             `lmtt' (encoding: T1).
 (microtype)             For optimal results, create family-specific settings.
 (microtype)             See the microtype manual for details.
- [2{/Users/alexiskirke/Library/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-mathex.enc}] [3]
-<plot_exp1_convergence.png, id=103, 578.16pt x 397.485pt>
+ [1
+
+{/Users/alexiskirke/Library/TinyTeX/texmf-var/fonts/map/pdftex/updmap/pdftex.map}{/Users/alexiskirke/Library/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-ec.enc}{/Users/alexiskirke/Library/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-mathit.enc}{/Users/alexiskirke/Library/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-rm.enc}{/Users/alexiskirke/Library/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-mathsy.enc}] [2{/Users/alexiskirke/Library/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-mathex.enc}] [3] [4]
+<plot_exp1_convergence.png, id=140, 578.16pt x 397.485pt>
 File: plot_exp1_convergence.png Graphic file (type png)
 <use plot_exp1_convergence.png>
-Package pdftex.def Info: plot_exp1_convergence.png  used on input line 158.
-(pdftex.def)             Requested size: 385.02547pt x 264.70024pt.
- [4]
-<plot_exp2_noise.png, id=115, 505.89pt x 361.35pt>
+Package pdftex.def Info: plot_exp1_convergence.png  used on input line 194.
+(pdftex.def)             Requested size: 430.31812pt x 295.84465pt.
+ [5]
+<plot_exp2_noise.png, id=151, 505.89pt x 361.35pt>
 File: plot_exp2_noise.png Graphic file (type png)
 <use plot_exp2_noise.png>
-Package pdftex.def Info: plot_exp2_noise.png  used on input line 189.
+Package pdftex.def Info: plot_exp2_noise.png  used on input line 225.
 (pdftex.def)             Requested size: 339.72592pt x 242.66565pt.
-LaTeX Font Info:    Trying to load font information for TS1+lmr on input line 218.
+LaTeX Font Info:    Trying to load font information for TS1+lmr on input line 255.
  (/Users/alexiskirke/Library/TinyTeX/texmf-dist/tex/latex/lm/ts1lmr.fd
 File: ts1lmr.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
-) [5 <./plot_exp1_convergence.png>]
-Overfull \hbox (7.3852pt too wide) in paragraph at lines 227--236
- [] 
- []
-
-[6{/Users/alexiskirke/Library/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-ts1.enc} <./plot_exp2_noise.png>]
-<plot_exp3_tail.png, id=139, 1004.0712pt x 407.6028pt>
+) [6 <./plot_exp1_convergence.png>]
+<plot_exp3_tail.png, id=169, 1004.0712pt x 407.6028pt>
 File: plot_exp3_tail.png Graphic file (type png)
 <use plot_exp3_tail.png>
-Package pdftex.def Info: plot_exp3_tail.png  used on input line 245.
+Package pdftex.def Info: plot_exp3_tail.png  used on input line 268.
 (pdftex.def)             Requested size: 430.31812pt x 174.68736pt.
- [7 <./plot_exp3_tail.png>]
-<plot_exp4_convergence.png, id=152, 578.16pt x 397.485pt>
+ [7{/Users/alexiskirke/Library/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-ts1.enc} <./plot_exp2_noise.png>] [8 <./plot_exp3_tail.png>]
+<plot_exp4_convergence.png, id=191, 578.16pt x 397.485pt>
 File: plot_exp4_convergence.png Graphic file (type png)
 <use plot_exp4_convergence.png>
-Package pdftex.def Info: plot_exp4_convergence.png  used on input line 279.
-(pdftex.def)             Requested size: 385.02547pt x 264.70024pt.
-<plot_exp4_tail.png, id=154, 650.43pt x 397.485pt>
+Package pdftex.def Info: plot_exp4_convergence.png  used on input line 304.
+(pdftex.def)             Requested size: 430.31812pt x 295.84465pt.
+ [9 <./plot_exp4_convergence.png>]
+<plot_exp4_tail.png, id=202, 650.43pt x 397.485pt>
 File: plot_exp4_tail.png Graphic file (type png)
 <use plot_exp4_tail.png>
-Package pdftex.def Info: plot_exp4_tail.png  used on input line 305.
-(pdftex.def)             Requested size: 385.02547pt x 235.29651pt.
- [8 <./plot_exp4_convergence.png>] [9 <./plot_exp4_tail.png>] [10] [11] (./paper.aux)
+Package pdftex.def Info: plot_exp4_tail.png  used on input line 338.
+(pdftex.def)             Requested size: 430.31812pt x 262.97774pt.
+ [10 <./plot_exp4_tail.png>]
+<plot_exp5_methods_synth.png, id=214, 867.24pt x 433.62pt>
+File: plot_exp5_methods_synth.png Graphic file (type png)
+<use plot_exp5_methods_synth.png>
+Package pdftex.def Info: plot_exp5_methods_synth.png  used on input line 369.
+(pdftex.def)             Requested size: 385.02547pt x 192.51367pt.
+<plot_exp5_budget_synth.png, id=215, 650.43pt x 433.62pt>
+File: plot_exp5_budget_synth.png Graphic file (type png)
+<use plot_exp5_budget_synth.png>
+Package pdftex.def Info: plot_exp5_budget_synth.png  used on input line 376.
+(pdftex.def)             Requested size: 385.02547pt x 256.6871pt.
+ [11 <./plot_exp5_methods_synth.png>]
+Overfull \hbox (0.67114pt too wide) in paragraph at lines 402--413
+ [][] 
+ []
+
+<plot_exp6_scaling.png, id=229, 1001.1804pt x 408.0846pt>
+File: plot_exp6_scaling.png Graphic file (type png)
+<use plot_exp6_scaling.png>
+Package pdftex.def Info: plot_exp6_scaling.png  used on input line 417.
+(pdftex.def)             Requested size: 430.31812pt x 175.39822pt.
+<plot_exp6_gates.png, id=230, 1000.2168pt x 408.0846pt>
+File: plot_exp6_gates.png Graphic file (type png)
+<use plot_exp6_gates.png>
+Package pdftex.def Info: plot_exp6_gates.png  used on input line 424.
+(pdftex.def)             Requested size: 430.31812pt x 175.57257pt.
+[12 <./plot_exp5_budget_synth.png>] [13 <./plot_exp6_scaling.png> <./plot_exp6_gates.png>]
+<plot_exp7_empirical.png, id=250, 722.7pt x 433.62pt>
+File: plot_exp7_empirical.png Graphic file (type png)
+<use plot_exp7_empirical.png>
+Package pdftex.def Info: plot_exp7_empirical.png  used on input line 469.
+(pdftex.def)             Requested size: 385.02547pt x 231.01509pt.
+ [14] [15 <./plot_exp7_empirical.png>] [16] [17] (./paper.aux)
  ***********
 LaTeX2e <2025-11-01>
 L3 programming layer <2025-11-06>
  ***********
 Package rerunfilecheck Info: File `paper.out' has not changed.
-(rerunfilecheck)             Checksum: AF0810EDEAE7526490AE41DC9C6A55E7;2457.
+(rerunfilecheck)             Checksum: 77D9C29BE742BC840D3767042F8652C3;3779.
  ) 
 Here is how much of TeX's memory you used:
- 14800 strings out of 469519
- 238122 string characters out of 5469078
- 681793 words of memory out of 5000000
- 42936 multiletter control sequences out of 15000+600000
- 704927 words of font info for 206 fonts, out of 8000000 for 9000
+ 14962 strings out of 469519
+ 240929 string characters out of 5469078
+ 684236 words of memory out of 5000000
+ 43004 multiletter control sequences out of 15000+600000
+ 717479 words of font info for 232 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 75i,12n,79p,1233b,586s stack positions out of 10000i,1000n,20000p,200000b,200000s
-</Users/alexiskirke/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmbx10.pfb></Users/alexiskirke/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmbx12.pfb></Users/alexiskirke/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmex10.pfb></Users/alexiskirke/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmmi10.pfb></Users/alexiskirke/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmmi7.pfb></Users/alexiskirke/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmmi8.pfb></Users/alexiskirke/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmr10.pfb></Users/alexiskirke/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmr12.pfb></Users/alexiskirke/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmr17.pfb></Users/alexiskirke/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmr7.pfb></Users/alexiskirke/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmr8.pfb></Users/alexiskirke/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmri10.pfb></Users/alexiskirke/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmsy10.pfb></Users/alexiskirke/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmsy8.pfb></Users/alexiskirke/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmtt10.pfb>
-Output written on paper.pdf (11 pages, 624026 bytes).
+ 75i,13n,79p,1760b,617s stack positions out of 10000i,1000n,20000p,200000b,200000s
+</Users/alexiskirke/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmbx10.pfb></Users/alexiskirke/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmbx12.pfb></Users/alexiskirke/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmex10.pfb></Users/alexiskirke/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmmi10.pfb></Users/alexiskirke/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmmi8.pfb></Users/alexiskirke/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmr10.pfb></Users/alexiskirke/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmr12.pfb></Users/alexiskirke/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmr17.pfb></Users/alexiskirke/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmr6.pfb></Users/alexiskirke/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmr7.pfb></Users/alexiskirke/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmr8.pfb></Users/alexiskirke/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmri10.pfb></Users/alexiskirke/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmsy10.pfb></Users/alexiskirke/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmsy8.pfb></Users/alexiskirke/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmtt10.pfb>
+Output written on paper.pdf (17 pages, 1144649 bytes).
 PDF statistics:
- 280 PDF objects out of 1000 (max. 8388607)
- 230 compressed objects within 3 object streams
- 65 named destinations out of 1000 (max. 500000)
- 41602 words of extra memory for PDF output out of 42996 (max. 10000000)
+ 397 PDF objects out of 1000 (max. 8388607)
+ 331 compressed objects within 4 object streams
+ 108 named destinations out of 1000 (max. 500000)
+ 47803 words of extra memory for PDF output out of 51595 (max. 10000000)
 
