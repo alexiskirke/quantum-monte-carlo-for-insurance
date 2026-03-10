@@ -1,6 +1,6 @@
 # Fdb version 4
-["pdflatex"] 1772354225.37695 "/Users/alexiskirke/Dropbox/Contracting/swyfft/quantum-mc/full_paper/paper.tex" "paper.pdf" "paper" 1772354226.8547 0
-  "/Users/alexiskirke/Dropbox/Contracting/swyfft/quantum-mc/full_paper/paper.tex" 1772354224.46494 83041 c3ccb1aaf29f5906a80755a67b5f3663 ""
+["pdflatex"] 1773155629.18898 "/Users/alexiskirke/Dropbox/Contracting/swyfft/quantum-mc/full_paper/paper.tex" "paper.pdf" "paper" 1773155630.38775 0
+  "/Users/alexiskirke/Dropbox/Contracting/swyfft/quantum-mc/full_paper/paper.tex" 1773155628.90945 82983 6b3e81c73b581ac91be8a49661d58c87 ""
   "/Users/alexiskirke/Library/TinyTeX/texmf-dist/fonts/tfm/jknappen/ec/ecbx1000.tfm" 1136768653 3584 2d666ecf6d466d8b007246bc2f94d9da ""
   "/Users/alexiskirke/Library/TinyTeX/texmf-dist/fonts/tfm/jknappen/ec/ecbx1095.tfm" 1136768653 3584 21b378cca2e40816b0e6d74a4dc98f04 ""
   "/Users/alexiskirke/Library/TinyTeX/texmf-dist/fonts/tfm/jknappen/ec/ecbx1200.tfm" 1136768653 3584 402da0b29eafbad07963b1224b222f18 ""
@@ -115,9 +115,9 @@
   "/Users/alexiskirke/Library/TinyTeX/texmf-var/fonts/pk/ljfour/jknappen/ec/tcrm1095.600pk" 1764105272.62334 12644 163f5681fb3c7b1de8d56a1b916587b4 ""
   "/Users/alexiskirke/Library/TinyTeX/texmf-var/web2c/pdftex/pdflatex.fmt" 1764041631 2235728 aa1865769e53572369f6b62c4431d98d ""
   "/Users/alexiskirke/Library/TinyTeX/texmf.cnf" 1764041583 637 edd806fb06a89761a6034e1968af9017 ""
-  "paper.aux" 1772354226.78525 20582 2ab92745f4a3539c08ca37624b0e2143 "pdflatex"
-  "paper.out" 1772354226.78648 5639 e982debab6c9e87affbe994a1dca55db "pdflatex"
-  "paper.tex" 1772354224.46494 83041 c3ccb1aaf29f5906a80755a67b5f3663 ""
+  "paper.aux" 1773155630.31378 20582 2ab92745f4a3539c08ca37624b0e2143 "pdflatex"
+  "paper.out" 1773155630.31484 5639 e982debab6c9e87affbe994a1dca55db "pdflatex"
+  "paper.tex" 1773155628.90945 82983 6b3e81c73b581ac91be8a49661d58c87 ""
   "plot_exp1_convergence.png" 1772194291.58804 113687 7b673e98d90de54afcdbdd84c1266118 ""
   "plot_exp2_noise.png" 1772194291.58851 43285 a0572d20feaf228566ae811e294f408c ""
   "plot_exp3_tail.png" 1772194291.58906 74914 d466697c0bab2b78b70adb8d261c6cc7 ""
